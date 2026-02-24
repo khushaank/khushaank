@@ -44,15 +44,27 @@
         overflow-y: auto;
       }
     </style>
-  
-    <meta name="description" content="Khushaank Gupta - AI Engineer & Developer Portfolio">
-    <meta name="keywords" content="Khushaank Gupta, AI Engineer, Machine Learning, Web Developer, Portfolio">
-    <meta name="author" content="Khushaank Gupta">
-    <meta property="og:title" content="Khushaank Gupta Portfolio">
-    <meta property="og:description" content="Portfolio of Khushaank Gupta, specializing in AI, Development, and Finance.">
-    <meta property="og:type" content="website">
-</head>
+
+    <meta
+      name="description"
+      content="Khushaank Gupta - AI Engineer & Developer Portfolio"
+    />
+    <meta
+      name="keywords"
+      content="Khushaank Gupta, AI Engineer, Machine Learning, Web Developer, Portfolio"
+    />
+    <meta name="author" content="Khushaank Gupta" />
+    <meta property="og:title" content="Khushaank Gupta Portfolio" />
+    <meta
+      property="og:description"
+      content="Portfolio of Khushaank Gupta, specializing in AI, Development, and Finance."
+    />
+    <meta property="og:type" content="website" />
+  </head>
   <body>
+    <div class="preloader">
+      <div class="loader-bar"></div>
+    </div>
     <div id="toast" class="toast">Action Successful</div>
 
     <div id="auth-section" class="auth-wrapper">
@@ -405,7 +417,6 @@
             />
           </div>
           <div class="content-grid" id="files-grid">
-            
             <div
               id="files-empty"
               style="
@@ -441,9 +452,7 @@
                   <th style="text-align: right">Actions</th>
                 </tr>
               </thead>
-              <tbody id="comments-body">
-                
-              </tbody>
+              <tbody id="comments-body"></tbody>
             </table>
             <div
               id="comments-empty"
@@ -608,7 +617,8 @@
                 class="form-input"
                 placeholder="https://..."
               />
-              <img id="image-preview"
+              <img
+                id="image-preview"
                 src=""
                 alt="Preview"
                 style="

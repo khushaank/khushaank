@@ -56,6 +56,9 @@ Showcases the fusion of AI and traditional finance:
 - Technical skills and tools overview
 - Interactive card effects
 
+### Resources (/resources)
+Helpful resources and utilities curated for the intersection of finance and tech.
+
 ### Article Viewer (/pulse/)
 Full-featured article reading experience:
 - Dynamic content loading via slug-based URLs

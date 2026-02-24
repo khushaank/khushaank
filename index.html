@@ -6,7 +6,7 @@
     <title>Khushaank Gupta — AI, Strategy &amp; Finance</title>
     <link rel="icon" type="image/png" href="/assets/images/favicon.webp" />
     <link rel="apple-touch-icon" href="/assets/images/favicon.webp" />
-    <meta name="theme-color" content="#1a1a1a" />
+    <meta name="theme-color" content="#ffffff" />
     <link rel="author" href="/humans.txt" />
     <meta
       name="description"
@@ -113,6 +113,9 @@
     <meta name="robots" content="index, follow" />
   </head>
   <body>
+    <div class="preloader">
+      <div class="loader-bar"></div>
+    </div>
     <header class="navbar">
       <div class="container nav-container">
         <a href="/" class="brand">KG.</a>
@@ -120,22 +123,13 @@
           <ul class="nav-links">
             <li><a href="#about" class="nav-link">About</a></li>
             <li><a href="/ai" class="nav-link">AI</a></li>
-            <li><a href="/ai-lab" class="nav-link">AI Lab</a></li>
             <li><a href="/resources" class="nav-link">Resources</a></li>
             <li><a href="/blog" class="nav-link">Insights</a></li>
             <li><a href="/contact" class="nav-link">Contact</a></li>
           </ul>
         </nav>
-        <div
-          class="nav-cta-wrapper"
-          style="margin-left: 1rem; margin-right: 1rem"
-        >
-          <a
-            href="/contact"
-            class="btn"
-            style="padding: 0.5rem 1rem; font-size: 0.9rem"
-            >Let's Talk</a
-          >
+        <div class="nav-cta-wrapper">
+          <a href="/contact" class="btn nav-cta-btn">Let's Talk</a>
         </div>
         <div class="row mobile-toggle">
           <input type="checkbox" id="hamburger" />
@@ -151,10 +145,11 @@
     <div class="mobile-menu">
       <a href="#about" class="mobile-link">About</a>
       <a href="/ai" class="mobile-link">AI</a>
-      <a href="/ai-lab" class="mobile-link">AI Lab</a>
+
       <a href="/resources" class="mobile-link">Resources</a>
       <a href="/blog" class="mobile-link">Insights</a>
       <a href="/contact" class="mobile-link">Contact</a>
+      <a href="/contact" class="btn mobile-cta">Let's Talk</a>
     </div>
 
     <main>
@@ -192,6 +187,11 @@
               width="500"
               fetchpriority="high"
             />
+          </div>
+        </div>
+        <div class="scroll-downs">
+          <div class="mousey">
+            <div class="scroller"></div>
           </div>
         </div>
       </section>
@@ -271,7 +271,7 @@
               <iframe
                 width="100%"
                 height="100%"
-                src="https://www.youtube.com/embed/rknci1EPus8?si=QKhI5XzGSlrRk8vS"
+                src="https://www.youtube-nocookie.com/embed/rknci1EPus8?si=QKhI5XzGSlrRk8vS&dnt=1"
                 title="Khushaank Gupta - Professional Introduction and Vision"
                 frameborder="0"
                 allow="
@@ -406,9 +406,7 @@
         <div class="container">
           <div class="theme-center-margin-1">
             <h2 class="section-title theme-margin-2">Current Focus</h2>
-            <p class="theme-w-muted-3">
-              What I'm working on and learning
-            </p>
+            <p class="theme-w-muted-3">What I'm working on and learning</p>
           </div>
 
           <div class="focus-grid">
@@ -529,91 +527,87 @@
           </p>
         </div>
 
-        <div class="bento-grid">
-          <div class="bento-card wide fade-in theme-col-10">
-            <span class="badge theme-margin-11">Featured</span>
-            <h3 class="theme-margin-12">
-              Local-First Personal Finance Architecture
-            </h3>
-            <p class="theme-margin-muted-13">
-              <strong>Challenge:</strong> Building a highly responsive,
-              completely private financial tracking system without relying on
-              third-party cloud integrations that compromise user data
-              anonymity. <br /><br />
-              <strong>Architecture:</strong> Engineered a robust Vanilla JS
-              application utilizing IndexedDB for persistent local storage,
-              layered with an AES-256 optional encryption module. <br /><br />
-              <strong>Impact:</strong> Achieved sub-50ms query times locally,
-              ensuring 100% data sovereignty and enabling offline capability,
-              all within a lightweight 800kb bundle size.
-            </p>
-            <a
-              href="https://github.com/kg"
-              class="btn btn-outline theme-14"
-              target="_blank"
-              rel="noopener noreferrer"
-              >View Repository
-              <i data-lucide="arrow-right" class="theme-w-15"></i
-            ></a>
+        <div class="innovation-showcase-grid">
+          <div class="showcase-card feature">
+            <div class="showcase-glow"></div>
+            <div class="showcase-content">
+              <span class="badge showcase-badge">Featured Innovation</span>
+              <h3 class="showcase-title">Local-First Finance Architecture</h3>
+              <div class="showcase-details">
+                <div class="detail-row">
+                  <span class="detail-label">Challenge</span>
+                  <p>
+                    Building a 100% private financial tracker without cloud
+                    dependencies.
+                  </p>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Engineered</span>
+                  <p>
+                    Vanilla JS IndexedDB matrix layered with AES-256 encryption.
+                  </p>
+                </div>
+                <div class="detail-row highlight">
+                  <span class="detail-label">Impact</span>
+                  <p>Sub-50ms query times locally with total data anonymity.</p>
+                </div>
+              </div>
+              <a
+                href="https://github.com/khushaank"
+                class="btn btn-showcase"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Explore Architecture <i data-lucide="arrow-right"></i>
+              </a>
+            </div>
           </div>
 
-          <div class="bento-card fade-in theme-col-10">
-            <span class="badge theme-margin-11">Analysis</span>
-            <h3 class="theme-margin-16">Tax Optimization Models</h3>
-            <p class="theme-margin-muted-17">
-              <strong>Challenge:</strong> Forecasting long-term tax liabilities
-              across diverse corporate structures. <br /><br />
-              <strong>Approach:</strong> Developed a dynamic Excel simulator
-              employing advanced VBA macros for rapid scenario testing between
-              old and new regimes. <br /><br />
-              <strong>Impact:</strong> Reduced projection time by 75% while
-              drastically improving cross-regime forecasting precision.
-            </p>
-            <a href="/ai" class="theme-margin-18"
-              >View Insights
-              <i data-lucide="chevron-right" class="theme-w-19"></i
-            ></a>
-          </div>
+          <div class="showcase-column">
+            <div class="showcase-card secondary">
+              <div class="showcase-bg icon-bg">
+                <i data-lucide="calculator"></i>
+              </div>
+              <div class="showcase-content">
+                <span class="badge compact">Analysis</span>
+                <h4>Tax Optimization Logic</h4>
+                <p class="showcase-desc">
+                  Dynamic simulator deploying VBA macros to automate long-term
+                  liability paths.
+                </p>
+                <a href="/resources" class="link-arrow"
+                  >View Tools <i data-lucide="chevron-right"></i
+                ></a>
+              </div>
+            </div>
 
-          <div class="bento-card fade-in theme-col-10">
-            <span class="badge theme-margin-11">AI Integration</span>
-            <h3 class="theme-margin-16">Automated Market Sentiments</h3>
-            <p class="theme-margin-muted-17">
-              <strong>Challenge:</strong> Filtering actionable financial signals
-              from a massive influx of daily news computationally. <br /><br />
-              <strong>Approach:</strong> Deployed a Python pipeline feeding
-              real-time financial RSS streams into an LLM layer for systematic
-              and objective scoring. <br /><br />
-              <strong>Impact:</strong> Enabled tracking of retail sentiment
-              matrices with high correlation to short-term market momentum.
-            </p>
-            <a href="/ai" class="theme-margin-18"
-              >View Insights
-              <i data-lucide="chevron-right" class="theme-w-19"></i
-            ></a>
-          </div>
+            <div class="showcase-card secondary">
+              <div class="showcase-bg icon-bg">
+                <i data-lucide="brain-circuit"></i>
+              </div>
+              <div class="showcase-content">
+                <span class="badge compact">AI Signal</span>
+                <h4>Automated Market Sentiment</h4>
+                <p class="showcase-desc">
+                  Python pipeline digesting real-time RSS into localized LLM
+                  scoring layers.
+                </p>
+                <a href="/ai" class="link-arrow"
+                  >Read Logic <i data-lucide="chevron-right"></i
+                ></a>
+              </div>
+            </div>
 
-          <div class="bento-card wide fade-in theme-col-10">
-            <span class="badge theme-margin-11">Strategy</span>
-            <h3 class="theme-margin-12">
-              Strategic Cost Management Framework
-            </h3>
-            <p class="theme-margin-muted-13">
-              <strong>Challenge:</strong> Identifying hidden operational
-              inefficiencies in a scaling enterprise without disrupting their
-              day-to-day ongoing operations. <br /><br />
-              <strong>Architecture:</strong> Integrated disparate financial data
-              streams into a unified analytics dashboard, enabling detailed
-              Activity-Based Costing (ABC) analysis at a granular level.
-              <br /><br />
-              <strong>Impact:</strong> Successfully highlighted key cost
-              drivers, resulting in a streamlined overhead and an immediate
-              measurable improvement in overall operational margins.
-            </p>
-            <a href="/contact" class="btn btn-outline theme-14"
-              >Discuss Strategy
-              <i data-lucide="arrow-right" class="theme-w-15"></i
-            ></a>
+            <div class="showcase-card secondary highlight-bg">
+              <div class="showcase-content">
+                <span class="badge compact solid">Strategy</span>
+                <h4>Activity-Based Cost Analytics</h4>
+                <p class="showcase-desc">
+                  Unifying disparate financial lakes to drive streamlined
+                  operational margins on a granular level.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -621,16 +615,14 @@
       <section class="section-padding bg-surface">
         <div class="container">
           <div class="fade-in theme-center-margin-1">
-            <h2 class="section-title theme-margin-8">
-              Peer Endorsements
-            </h2>
+            <h2 class="section-title theme-margin-8">Peer Endorsements</h2>
             <p class="theme-muted-9">
               What professionals are saying about my work.
             </p>
           </div>
 
-          <div class="testimonials-grid">
-            <div class="testimonial-card fade-in">
+          <div class="testimonials-scroller-container">
+            <div class="testimonial-card">
               <div class="quote-icon"><i data-lucide="quote"></i></div>
               <p class="testimonial-text">
                 "Khushaank possesses a rare blend of deep technical accounting
@@ -638,7 +630,7 @@
                 automate financial workflows is genuinely impressive."
               </p>
               <div class="testimonial-author">
-                <div class="author-avatar">S</div>
+                <div class="author-avatar gradient-1">S</div>
                 <div class="author-info">
                   <h4>Senior Audit Partner</h4>
                   <span>CA Firm</span>
@@ -646,7 +638,7 @@
               </div>
             </div>
 
-            <div class="testimonial-card fade-in theme-20">
+            <div class="testimonial-card">
               <div class="quote-icon"><i data-lucide="quote"></i></div>
               <p class="testimonial-text">
                 "We collaborated on refining the data pipeline for a
@@ -655,7 +647,7 @@
                 troubleshooting."
               </p>
               <div class="testimonial-author">
-                <div class="author-avatar">M</div>
+                <div class="author-avatar gradient-2">M</div>
                 <div class="author-info">
                   <h4>Quantitative Analyst</h4>
                   <span>Fintech Startup</span>
@@ -663,7 +655,22 @@
               </div>
             </div>
 
-            <div class="testimonial-card fade-in theme-21">
+            <div class="testimonial-card">
+              <div class="quote-icon"><i data-lucide="quote"></i></div>
+              <p class="testimonial-text">
+                "Not only did he optimize our legacy VBA scripts, but his
+                integration of local LLM models completely transformed our
+                internal analytics speed. A powerhouse of hybrid skills."
+              </p>
+              <div class="testimonial-author">
+                <div class="author-avatar gradient-3">A</div>
+                <div class="author-info">
+                  <h4>Financial Controller</h4>
+                  <span>Investment Fund</span>
+                </div>
+              </div>
+            </div>
+            <div class="testimonial-card">
               <div class="quote-icon"><i data-lucide="quote"></i></div>
               <p class="testimonial-text">
                 "An exceptional analytical mind. He dissects complex tax law
@@ -671,7 +678,7 @@
                 scripts. Highly reliable and constantly learning."
               </p>
               <div class="testimonial-author">
-                <div class="author-avatar">R</div>
+                <div class="author-avatar gradient-4">R</div>
                 <div class="author-info">
                   <h4>Chartered Accountant</h4>
                   <span>Peer Review</span>
@@ -780,9 +787,7 @@
         </div>
 
         <div class="theme-center-margin-22">
-          <a
-            href="/blog"
-            class="btn btn-outline insights-cta theme-23"
+          <a href="/blog" class="btn btn-outline insights-cta theme-23"
             >View All Insights</a
           >
         </div>
@@ -875,14 +880,7 @@
               required=""
               class="theme-w-28"
             />
-            <button
-              type="submit"
-              onmouseover="this.style.opacity = '0.9'"
-              onmouseout="this.style.opacity = '1'"
-              class="theme-29"
-            >
-              Subscribe
-            </button>
+            <button type="submit" class="theme-29">Subscribe</button>
           </form>
           <p class="theme-margin-30">
             Join 500+ professionals. Unsubscribe anytime.
@@ -903,7 +901,7 @@
           <ul class="footer-links">
             <li><a href="/#about">About</a></li>
             <li><a href="/ai">AI</a></li>
-            <li><a href="/ai-lab">AI Lab</a></li>
+
             <li><a href="/resources">Resources</a></li>
             <li><a href="/blog">Insights</a></li>
             <li><a href="/contact">Contact</a></li>

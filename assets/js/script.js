@@ -121,6 +121,9 @@ function initPage() {
 
   initCommunityPopup();
   trackPageView();
+  initScrollTopButton();
+  updateCopyrightYear();
+  initFAQToggle();
 }
 
 function initCommunityPopup() {
@@ -431,31 +434,48 @@ async function navigateTo(url) {
     const currentMain = document.querySelector("main");
 
     if (newMain && currentMain) {
-      currentMain.style.opacity = "0";
-      currentMain.style.transition = "opacity 0.2s";
+      currentMain.innerHTML = newMain.innerHTML;
+      currentMain.className = newMain.className;
+      currentMain.removeAttribute("style");
 
-      setTimeout(() => {
-        currentMain.innerHTML = newMain.innerHTML;
-        currentMain.className = newMain.className;
-        currentMain.removeAttribute("style");
-        currentMain.classList.add("fade-in-page");
-
-        setTimeout(() => currentMain.classList.remove("fade-in-page"), 500);
-
-        if (window.location.href !== url) {
-          window.history.pushState({}, "", url);
-          currentSPAUrl = window.location.pathname;
+      if (window.location.href !== url) {
+        let pushUrl = url;
+        if (
+          (window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1") &&
+          pushUrl !== "/" &&
+          !pushUrl.includes(".") &&
+          !pushUrl.endsWith("/") &&
+          !pushUrl.includes("?")
+        ) {
+          pushUrl += ".html";
         }
+        window.history.pushState({}, "", pushUrl);
+        currentSPAUrl = window.location.pathname;
+      }
 
-        initPage();
+      initPage();
 
-        if (typeof trackAnalytics === "function") {
-          trackAnalytics();
+      document.querySelectorAll(".fade-in").forEach((el) => {
+        el.classList.add("visible");
+      });
+
+      if (typeof trackAnalytics === "function") {
+        trackAnalytics();
+      }
+
+      if (urlObj.hash) {
+        const target = document.querySelector(urlObj.hash);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth" });
+        } else {
+          window.scrollTo(0, 0);
         }
-
+      } else {
         window.scrollTo(0, 0);
-        loadingBar.finish();
-      }, 200);
+      }
+
+      loadingBar.finish();
     } else {
       window.location.href = url;
     }
@@ -1286,16 +1306,39 @@ async function loadArticle(slug) {
     const ogImage = document.querySelector('meta[property="og:image"]');
     if (ogImage && data.image_url) ogImage.content = data.image_url;
 
-    const twTitle = document.querySelector('meta[property="twitter:title"]');
+    const twTitle = document.querySelector('meta[name="twitter:title"]');
     if (twTitle) twTitle.content = data.title;
 
-    const twDesc = document.querySelector(
-      'meta[property="twitter:description"]',
-    );
+    const twDesc = document.querySelector('meta[name="twitter:description"]');
     if (twDesc) twDesc.content = data.excerpt || "";
 
-    const twImage = document.querySelector('meta[property="twitter:image"]');
+    const twImage = document.querySelector('meta[name="twitter:image"]');
     if (twImage && data.image_url) twImage.content = data.image_url;
+
+    let schemaScript = document.querySelector(
+      'script[type="application/ld+json"]',
+    );
+    if (schemaScript) {
+      const schemaData = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: data.title,
+        description: data.excerpt || data.title,
+        image: data.image_url ? [data.image_url] : [],
+        author: {
+          "@type": "Person",
+          name: "Khushaank Gupta",
+          url: "https://khushaankgupta.qzz.io/",
+        },
+        datePublished: data.created_at,
+        dateModified: data.updated_at || data.created_at,
+        mainEntityOfPage: {
+          "@type": "WebPage",
+          "@id": window.location.href,
+        },
+      };
+      schemaScript.textContent = JSON.stringify(schemaData);
+    }
 
     document.getElementById("article-title").textContent = data.title;
     document.getElementById("article-date").textContent = new Date(
@@ -1507,6 +1550,7 @@ function initNewsletter() {
               if (slidein) slidein.classList.remove("active");
             }, 2000);
           } else {
+            localStorage.setItem("newsletter_interacted", "subscribed");
             const parent = form.parentElement;
             parent.innerHTML = `
               <div style="text-align: center; padding: 1rem; color: #16a34a; background: #dcfce7; border-radius: 8px;">
@@ -1532,56 +1576,52 @@ function initNewsletter() {
 }
 
 function initContactForm() {
-  const forms = document.querySelectorAll('form[action="https://api.web3forms.com/submit"]');
-  
-  forms.forEach(form => {
+  const forms = document.querySelectorAll(
+    'form[action="https://api.web3forms.com/submit"]',
+  );
+
+  forms.forEach((form) => {
     const btn = form.querySelector('button[type="submit"]');
     const originalBtnText = btn ? btn.innerHTML : "Send Message";
 
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const formData = new FormData(form);
       const dataObj = Object.fromEntries(formData.entries());
 
       // Basic global validation
-      let status = form.parentElement.querySelector('.contact-status-message');
+      let status = form.parentElement.querySelector(".contact-status-message");
       if (!status) {
-         // Create status element if it doesn't exist
-         status = document.createElement('div');
-         status.className = 'contact-status-message';
-         status.style.display = 'none';
-         status.style.marginTop = '1rem';
-         status.style.padding = '10px';
-         status.style.borderRadius = '5px';
-         form.appendChild(status);
+        status = document.createElement("div");
+        status.className = "contact-status-message";
+        form.appendChild(status);
       }
-      
+
       let isValid = true;
-      let errorMessage = '';
+      let errorMessage = "";
 
       if (dataObj.email) {
         const emailRegex = /^[^s@]+@[^s@]+.[^s@]+$/;
         if (!emailRegex.test(dataObj.email)) {
-            isValid = false;
-            errorMessage = 'Please enter a valid email address.';
+          isValid = false;
+          errorMessage = "Please enter a valid email address.";
         }
       }
-      
+
       if (isValid && dataObj.message) {
         if (dataObj.message.trim().length < 10) {
-            isValid = false;
-            errorMessage = 'Message is too short. Please provide more details.';
+          isValid = false;
+          errorMessage = "Message is too short. Please provide more details.";
         }
       }
 
       if (!isValid && errorMessage) {
-          form.classList.add('form-shake');
-          setTimeout(() => form.classList.remove('form-shake'), 400);
-          status.style.display = 'block';
-          status.style.color = '#ff4444';
-          status.innerText = errorMessage;
-          return;
+        form.classList.add("form-shake");
+        setTimeout(() => form.classList.remove("form-shake"), 400);
+        status.className = "contact-status-message visible error";
+        status.innerText = errorMessage;
+        return;
       }
 
       if (btn) {
@@ -1589,61 +1629,65 @@ function initContactForm() {
         btn.innerHTML = '<span class="loading-spinner"></span> Sending...';
       }
 
-      status.style.display = 'none';
+      status.className = "contact-status-message";
 
       try {
-        const web3Promise = fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
+        const web3Promise = fetch("https://api.web3forms.com/submit", {
+          method: "POST",
           body: formData,
           headers: {
-            'Accept': 'application/json' // THIS FIXES THE 400 BAD REQUEST
-          }
+            Accept: "application/json", // THIS FIXES THE 400 BAD REQUEST
+          },
         });
 
         let supabasePromise = Promise.resolve();
         if (window.supabaseClient) {
-          supabasePromise = window.supabaseClient.from('messages').insert([{
-            name: dataObj.name || 'Unknown',
-            email: dataObj.email || 'Unknown',
-            subject: dataObj.subject || 'Contact Form Submission',
-            message: dataObj.message || 'No Message',
-          }]);
+          supabasePromise = window.supabaseClient.from("messages").insert([
+            {
+              name: dataObj.name || "Unknown",
+              email: dataObj.email || "Unknown",
+              subject: dataObj.subject || "Contact Form Submission",
+              message: dataObj.message || "No Message",
+            },
+          ]);
         }
 
         const [response] = await Promise.all([web3Promise, supabasePromise]);
-        
+
         if (response.ok) {
-          const card = form.closest('.contact-form-card, .contact-right') || form.parentElement;
-          if (card && !form.id.includes('newsletter')) {
+          const card =
+            form.closest(".contact-form-card, .contact-right") ||
+            form.parentElement;
+          if (card && !form.id.includes("newsletter")) {
             card.innerHTML = `
-              <div style="text-align: center; padding: 3rem 1rem; animation: fadeIn 0.5s ease;">
-                <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: #dcfce7; color: #16a34a; border-radius: 50%; margin-bottom: 1.5rem;">
+              <div class="contact-success">
+                <div class="contact-success-icon">
                   <i data-lucide="check" size="32"></i>
                 </div>
-                <h3 style="margin-bottom: 0.5rem;">Message Sent!</h3>
-                <p style="color: var(--text-muted);">Thanks for reaching out. I'll get back to you shortly.</p>
-                <button class="btn btn-outline" style="margin-top: 1.5rem;" onclick="location.reload()">Send Another</button>
+                <h3>Message Sent!</h3>
+                <p>Thanks for reaching out. I'll get back to you shortly.</p>
+                <button class="btn btn-outline contact-success-btn" onclick="location.reload()">Send Another</button>
               </div>
             `;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            if (typeof lucide !== "undefined") lucide.createIcons();
           } else {
-            status.style.display = 'block';
-            status.style.color = 'var(--success-color, green)';
-            status.innerText = 'Sent successfully!';
+            status.className = "contact-status-message visible success";
+            status.innerText = "Sent successfully!";
             form.reset();
             if (btn) {
-               btn.disabled = false;
-               btn.innerHTML = originalBtnText;
+              btn.disabled = false;
+              btn.innerHTML = originalBtnText;
             }
           }
         } else {
           const errData = await response.json();
-          throw new Error(errData.message || 'Form submission failed');
+          throw new Error(errData.message || "Form submission failed");
         }
       } catch (error) {
-        status.style.display = 'block';
-        status.style.color = '#ff4444';
-        status.innerText = error.message.includes('failed') ? "Something went wrong. Please try again later." : error.message;
+        status.className = "contact-status-message visible error";
+        status.innerText = error.message.includes("failed")
+          ? "Something went wrong. Please try again later."
+          : error.message;
         if (btn) {
           btn.disabled = false;
           btn.innerHTML = originalBtnText;
@@ -2338,49 +2382,60 @@ function toggleShortcutsModal() {
   }
 }
 
+function initScrollTopButton() {
+  const scrollBtn = document.getElementById("scroll-top-btn");
+  if (!scrollBtn) return;
 
-// --- Page Transitions ---
-function initPageTransitions() {
-  document.body.classList.add('page-transition');
-  
-  // Quick fade in on load
-  document.body.classList.add('fade-in');
-  requestAnimationFrame(() => {
-    document.body.classList.remove('fade-in');
-  });
+  if (!window._scrollTopListenerAdded) {
+    window.addEventListener(
+      "scroll",
+      () => {
+        const btn = document.getElementById("scroll-top-btn");
+        if (!btn) return;
+        if (window.scrollY > 400) {
+          btn.classList.add("visible");
+        } else {
+          btn.classList.remove("visible");
+        }
 
-  document.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', (e) => {
-      const href = link.getAttribute('href');
-      const target = link.getAttribute('target');
-      
-      if (
-        href && 
-        !href.startsWith('#') &&
-        !href.startsWith('mailto:') &&
-        !href.startsWith('tel:') &&
-        !href.startsWith('javascript:') &&
-        target !== '_blank'
-      ) {
-        // Exclude current page anchors
-        if (href.startsWith(window.location.pathname + '#')) return;
+        const footer = document.querySelector("footer");
+        if (footer) {
+          const footerTop = footer.getBoundingClientRect().top;
+          const windowHeight = window.innerHeight;
+          if (footerTop < windowHeight) {
+            btn.classList.add("near-footer");
+          } else {
+            btn.classList.remove("near-footer");
+          }
+        }
+      },
+      { passive: true },
+    );
+    window._scrollTopListenerAdded = true;
+  }
 
-        e.preventDefault();
-        document.body.classList.add('fade-out');
-        setTimeout(() => {
-          window.location.href = href;
-        }, 300); // 300ms transition
-      }
-    });
-  });
+  scrollBtn.onclick = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 }
 
-window.addEventListener('pageshow', (e) => {
-  if (e.persisted) {
-    document.body.classList.remove('fade-out');
-  }
-});
+function updateCopyrightYear() {
+  const el = document.getElementById("current-year");
+  if (el) el.textContent = new Date().getFullYear();
+}
 
-document.addEventListener("DOMContentLoaded", () => {
-  initPageTransitions();
-});
+function initFAQToggle() {
+  const faqItems = document.querySelectorAll(".faq-item");
+  faqItems.forEach((item) => {
+    const header = item.querySelector(".ai-list-title");
+    if (header) {
+      header.replaceWith(header.cloneNode(true));
+      const newHeader = item.querySelector(".ai-list-title");
+      newHeader.addEventListener("click", () => {
+        const wasActive = item.classList.contains("active");
+        faqItems.forEach((other) => other.classList.remove("active"));
+        if (!wasActive) item.classList.add("active");
+      });
+    }
+  });
+}

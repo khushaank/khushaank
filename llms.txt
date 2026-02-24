@@ -28,6 +28,12 @@ Dedicated page showcasing the intersection of AI and traditional finance — inc
 ### /pulse/ (Article Viewer)
 Dynamic article reader with table of contents, reading progress bar, focus mode, in-article search, related posts, and a comment system with Google OAuth.
 
+### /resources (Resources)
+A collection of helpful tools, models, and references for finance and AI professionals.
+
+### /contact (Contact)
+Get in touch directly via email and linked social profiles.
+
 ### /privacy (Privacy Policy)
 Standard privacy policy covering data collection, cookies, analytics, and user rights.
 

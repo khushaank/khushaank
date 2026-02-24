@@ -7,6 +7,8 @@
 # Clean URLs (no .html extension)
 /blog       /blog.html     200
 /ai         /ai.html       200
+/contact    /contact.html  200
+/resources  /resources.html 200
 /admin      /admin.html    200
 /privacy    /privacy.html  200
 /terms      /terms.html    200

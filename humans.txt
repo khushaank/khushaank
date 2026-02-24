@@ -1,7 +1,7 @@
 /* TEAM */
 
 Name: Khushaank Gupta
-Role: Creator, Designer & Developer
+Role: Creator, Designer, Developer & SEO Strategist
 Contact: khushaankgupta@gmail.com
 Twitter: @Khushaankgupta
 LinkedIn: linkedin.com/in/khushaank
@@ -9,7 +9,7 @@ From: Delhi, India
 
 /* SITE */
 
-Last update: 2026-02-13
+Last update: 2026-02-23
 Standards: HTML5, CSS3, ES6+
 Language: English
 Doctype: HTML5
