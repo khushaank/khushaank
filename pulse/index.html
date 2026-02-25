@@ -294,23 +294,63 @@
             </button>
           </div>
 
-          <form id="comment-form" class="theme-margin-63">
-            <div class="theme-margin-64">
-              <div class="theme-65">
-                <span id="user-display-name" class="theme-66"></span>
-                <button type="button" id="logout-btn" class="theme-muted-67">
-                  Sign Out
-                </button>
-              </div>
+          <form id="comment-form" class="comment-form">
+            <div class="comment-user-info">
+              <span id="user-display-name" class="user-display-name"></span>
+              <button type="button" id="logout-btn" class="logout-btn">
+                Sign Out
+              </button>
             </div>
-            <div class="input-group theme-col-w-68">
+
+            <div class="comment-input-wrapper">
               <textarea
                 id="comment-content"
                 placeholder="Share your thoughts..."
                 required=""
-                class="calc-input theme-margin-w-69"
+                class="comment-textarea"
               ></textarea>
-              <button type="submit" class="btn theme-70">Post Comment</button>
+
+              <div
+                id="comment-image-preview"
+                class="comment-image-preview"
+                style="display: none"
+              >
+                <img id="preview-img" src="" alt="Preview" />
+                <button
+                  type="button"
+                  id="remove-image-btn"
+                  class="remove-image-btn"
+                  title="Remove image"
+                >
+                  <i data-lucide="x-circle"></i>
+                </button>
+              </div>
+
+              <div class="comment-actions">
+                <div class="image-upload-wrapper">
+                  <button
+                    type="button"
+                    id="add-image-btn"
+                    class="add-image-btn"
+                    title="Add image"
+                  >
+                    <i data-lucide="plus-circle"></i>
+                  </button>
+                  <input
+                    type="file"
+                    id="comment-image-upload"
+                    accept="image/png, image/jpeg, image/webp"
+                    style="display: none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  id="submit-comment-btn"
+                  class="btn btn-primary post-comment-btn"
+                >
+                  Post Comment
+                </button>
+              </div>
             </div>
           </form>
 

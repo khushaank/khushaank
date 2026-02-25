@@ -67,75 +67,53 @@
     </div>
     <div id="toast" class="toast">Action Successful</div>
 
-    <div id="auth-section" class="auth-wrapper">
-      <div class="auth-card fade-in">
-        <div class="brand-logo">KG.</div>
-        <h2
-          style="
-            margin-bottom: 0.5rem;
-            text-align: center;
-            font-family: &quot;Playfair Display&quot;, serif;
-          "
-        >
-          Welcome Back
-        </h2>
-        <p
-          style="
-            text-align: center;
-            color: var(--text-muted);
-            margin-bottom: 2rem;
-            font-size: 0.9rem;
-          "
-        >
-          Sign in to manage your portfolio.
-        </p>
-
-        <form id="login-form">
-          <div class="form-group">
-            <label class="form-label">Email</label>
-            <input
-              type="email"
-              id="email"
-              class="form-input"
-              required
-              placeholder="admin@example.com"
-            />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Password</label>
-            <input
-              type="password"
-              id="password"
-              class="form-input"
-              required
-              placeholder="••••••••"
-            />
-          </div>
-          <button
-            type="submit"
-            class="btn btn-primary"
-            style="width: 100%; margin-top: 1rem"
-          >
-            Sign In
-          </button>
-        </form>
-        <p id="auth-error" class="error-msg"></p>
-      </div>
-    </div>
-
     <div id="dashboard-section" class="admin-layout hidden">
-      <aside class="sidebar">
-        <div class="sidebar-brand">
-          KG.
-          <span
-            style="
-              font-size: 0.8rem;
-              opacity: 0.5;
-              font-weight: normal;
-              font-family: &quot;Manrope&quot;, sans-serif;
-            "
-            >Admin</span
-          >
+      <div class="mobile-header">
+        <div style="display: flex; align-items: center; gap: 1rem">
+          <i
+            data-lucide="menu"
+            id="mobile-sidebar-toggle"
+            style="cursor: pointer; min-width: 24px"
+          ></i>
+          <span class="sidebar-brand" style="margin-bottom: 0">
+            KG.
+            <span
+              style="
+                font-size: 0.8rem;
+                opacity: 0.5;
+                font-weight: normal;
+                font-family: &quot;Manrope&quot;, sans-serif;
+              "
+              >Admin</span
+            >
+          </span>
+        </div>
+      </div>
+
+      <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+      <aside class="sidebar" id="sidebar">
+        <div
+          class="sidebar-brand"
+          style="display: flex; align-items: center; gap: 0.75rem"
+        >
+          <i
+            data-lucide="menu"
+            id="desktop-sidebar-toggle"
+            style="cursor: pointer; min-width: 24px"
+          ></i>
+          <span class="brand-text"
+            >KG.
+            <span
+              style="
+                font-size: 0.8rem;
+                opacity: 0.5;
+                font-weight: normal;
+                font-family: &quot;Manrope&quot;, sans-serif;
+              "
+              >Admin</span
+            >
+          </span>
         </div>
         <nav>
           <div
@@ -143,48 +121,72 @@
             class="nav-item active"
             onclick="switchView('dashboard')"
           >
-            <i data-lucide="layout-dashboard" size="18"></i> Dashboard
+            <i
+              data-lucide="layout-dashboard"
+              size="18"
+              style="min-width: 18px"
+            ></i>
+            <span class="nav-text">Dashboard</span>
+          </div>
+          <div id="nav-blogs" class="nav-item" onclick="switchView('blogs')">
+            <i data-lucide="file-text" size="18" style="min-width: 18px"></i>
+            <span class="nav-text">Blogs</span>
           </div>
           <div
             id="nav-analytics"
             class="nav-item"
             onclick="switchView('analytics')"
           >
-            <i data-lucide="bar-chart-3" size="18"></i> Analytics
+            <i data-lucide="bar-chart-3" size="18" style="min-width: 18px"></i>
+            <span class="nav-text">Analytics</span>
           </div>
           <div
             id="nav-subscribers"
             class="nav-item"
             onclick="switchView('subscribers')"
           >
-            <i data-lucide="users" size="18"></i> Subscribers
+            <i data-lucide="users" size="18" style="min-width: 18px"></i>
+            <span class="nav-text">Subscribers</span>
           </div>
           <div
             id="nav-messages"
             class="nav-item"
             onclick="switchView('messages')"
           >
-            <i data-lucide="message-square" size="18"></i> Messages
+            <i
+              data-lucide="message-square"
+              size="18"
+              style="min-width: 18px"
+            ></i>
+            <span class="nav-text">Messages</span>
           </div>
           <div
             id="nav-comments"
             class="nav-item"
             onclick="switchView('comments')"
           >
-            <i data-lucide="message-circle" size="18"></i> Comments
+            <i
+              data-lucide="message-circle"
+              size="18"
+              style="min-width: 18px"
+            ></i>
+            <span class="nav-text">Comments</span>
           </div>
           <div id="nav-files" class="nav-item" onclick="switchView('files')">
-            <i data-lucide="folder-open" size="18"></i> Files
+            <i data-lucide="folder-open" size="18" style="min-width: 18px"></i>
+            <span class="nav-text">Files</span>
           </div>
           <div
             id="nav-settings"
             class="nav-item"
             onclick="switchView('settings')"
           >
-            <i data-lucide="settings" size="18"></i> Settings
+            <i data-lucide="settings" size="18" style="min-width: 18px"></i>
+            <span class="nav-text">Settings</span>
           </div>
           <div class="nav-item logout-btn" onclick="signOut()">
-            <i data-lucide="log-out" size="18"></i> Sign Out
+            <i data-lucide="log-out" size="18" style="min-width: 18px"></i>
+            <span class="nav-text">Sign Out</span>
           </div>
         </nav>
       </aside>
@@ -193,7 +195,156 @@
         <div id="view-dashboard">
           <div class="page-header">
             <div>
-              <h2 class="page-title">Articles</h2>
+              <h2 class="page-title">Dashboard</h2>
+              <p style="color: var(--text-muted); font-size: 0.9rem">
+                Overview of your site analytics.
+              </p>
+            </div>
+            <div class="date-filter-group">
+              <button class="date-filter-btn active" data-range="today">
+                Today
+              </button>
+              <button class="date-filter-btn" data-range="week">Week</button>
+              <button class="date-filter-btn" data-range="month">Month</button>
+              <button class="date-filter-btn" data-range="year">Year</button>
+              <button class="date-filter-btn" data-range="all">All Time</button>
+            </div>
+          </div>
+
+          <div class="stats-container">
+            <div class="stat-box">
+              <div class="stat-icon"><i data-lucide="eye"></i></div>
+              <div>
+                <div class="stat-value" id="dash-page-views">0</div>
+                <div class="stat-label">Page Views</div>
+              </div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-icon"><i data-lucide="users"></i></div>
+              <div>
+                <div class="stat-value" id="dash-unique-visitors">0</div>
+                <div class="stat-label">Unique Visitors</div>
+              </div>
+            </div>
+            <div class="stat-box">
+              <div
+                class="stat-icon"
+                style="background: rgba(37, 99, 235, 0.1); color: #2563eb"
+              >
+                <i data-lucide="file-text"></i>
+              </div>
+              <div>
+                <div class="stat-value" id="total-posts">0</div>
+                <div class="stat-label">Published Articles</div>
+              </div>
+            </div>
+            <div class="stat-box">
+              <div
+                class="stat-icon"
+                style="background: rgba(16, 185, 129, 0.1); color: #10b981"
+              >
+                <i data-lucide="trending-up"></i>
+              </div>
+              <div>
+                <div class="stat-value" id="dash-avg-daily">0</div>
+                <div class="stat-label">Avg. Daily Views</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-card" style="margin-top: 1.5rem; padding: 1.5rem">
+            <h3
+              style="
+                font-size: 1rem;
+                font-weight: 600;
+                margin-bottom: 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+              "
+            >
+              <i data-lucide="bar-chart-3" size="18"></i> Traffic Overview
+            </h3>
+            <div style="position: relative; width: 100%; height: 280px">
+              <canvas id="dashboardChart"></canvas>
+            </div>
+          </div>
+
+          <div class="split-grid" style="margin-top: 1.5rem">
+            <div class="table-card" style="padding: 1.5rem">
+              <h3
+                style="
+                  font-size: 1rem;
+                  font-weight: 600;
+                  margin-bottom: 1rem;
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                "
+              >
+                <i data-lucide="file-text" size="18"></i> Top Pages
+              </h3>
+              <div
+                id="dash-top-pages"
+                style="font-size: 0.9rem; color: var(--text-muted)"
+              >
+                Loading...
+              </div>
+            </div>
+            <div class="table-card" style="padding: 1.5rem">
+              <h3
+                style="
+                  font-size: 1rem;
+                  font-weight: 600;
+                  margin-bottom: 1rem;
+                  display: flex;
+                  align-items: center;
+                  gap: 0.5rem;
+                "
+              >
+                <i data-lucide="globe" size="18"></i> Top Referrers
+              </h3>
+              <div
+                id="dash-top-referrers"
+                style="font-size: 0.9rem; color: var(--text-muted)"
+              >
+                Loading...
+              </div>
+            </div>
+          </div>
+
+          <div class="table-card" style="margin-top: 1.5rem; padding: 1.5rem">
+            <h3
+              style="
+                font-size: 1rem;
+                font-weight: 600;
+                margin-bottom: 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+              "
+            >
+              <i data-lucide="calendar" size="18"></i> Daily Breakdown
+            </h3>
+            <div class="table-responsive">
+              <table id="dash-daily-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Views</th>
+                    <th>Unique Visitors</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-daily-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-blogs" class="hidden">
+          <div class="page-header">
+            <div>
+              <h2 class="page-title">Articles & Blogs</h2>
               <p style="color: var(--text-muted); font-size: 0.9rem">
                 Manage your blog posts and insights.
               </p>
@@ -214,54 +365,20 @@
             </div>
           </div>
 
-          <div class="stats-container">
-            <div class="stat-box">
-              <div class="stat-icon"><i data-lucide="file-text"></i></div>
-              <div>
-                <div class="stat-value" id="total-posts">0</div>
-                <div class="stat-label">Published Articles</div>
-              </div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-icon"><i data-lucide="eye"></i></div>
-              <div>
-                <div class="stat-value" id="total-views">0</div>
-                <div class="stat-label">Article Views</div>
-              </div>
-            </div>
-            <div class="stat-box">
-              <div
-                class="stat-icon"
-                style="background: rgba(37, 99, 235, 0.1); color: #2563eb"
-              >
-                <i data-lucide="activity"></i>
-              </div>
-              <div>
-                <div class="stat-value" id="site-views">0</div>
-                <div class="stat-label">Live Page Views</div>
-              </div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-icon"><i data-lucide="users"></i></div>
-              <div>
-                <div class="stat-value" id="total-visitors">0</div>
-                <div class="stat-label">Unique Visitors</div>
-              </div>
-            </div>
-          </div>
-
           <div class="table-card">
-            <table id="posts-table">
-              <thead>
-                <tr>
-                  <th width="40%">Title</th>
-                  <th>Date</th>
-                  <th>Views</th>
-                  <th style="text-align: right">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="posts-body"></tbody>
-            </table>
+            <div class="table-responsive">
+              <table id="posts-table">
+                <thead>
+                  <tr>
+                    <th width="40%">Title</th>
+                    <th>Date</th>
+                    <th>Views</th>
+                    <th style="text-align: right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="posts-body"></tbody>
+              </table>
+            </div>
             <div
               id="empty-state"
               style="
@@ -332,29 +449,31 @@
           </div>
 
           <div class="table-card">
-            <table id="subscribers-table">
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Joined Date</th>
-                  <th style="text-align: right">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="subscribers-body">
-                <tr>
-                  <td
-                    colspan="3"
-                    style="
-                      text-align: center;
-                      padding: 3rem;
-                      color: var(--text-muted);
-                    "
-                  >
-                    Loading subscribers...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="table-responsive">
+              <table id="subscribers-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Joined Date</th>
+                    <th style="text-align: right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="subscribers-body">
+                  <tr>
+                    <td
+                      colspan="3"
+                      style="
+                        text-align: center;
+                        padding: 3rem;
+                        color: var(--text-muted);
+                      "
+                    >
+                      Loading subscribers...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -371,17 +490,19 @@
             </button>
           </div>
           <div class="table-card">
-            <table>
-              <thead>
-                <tr>
-                  <th width="25%">Sender</th>
-                  <th width="50%">Message</th>
-                  <th>Date</th>
-                  <th style="text-align: right">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="messages-body"></tbody>
-            </table>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th width="25%">Sender</th>
+                    <th width="50%">Message</th>
+                    <th>Date</th>
+                    <th style="text-align: right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="messages-body"></tbody>
+              </table>
+            </div>
             <div
               id="messages-empty"
               style="
@@ -442,18 +563,20 @@
           </div>
 
           <div class="table-card">
-            <table id="comments-table">
-              <thead>
-                <tr>
-                  <th>User</th>
-                  <th>Comment</th>
-                  <th>Post</th>
-                  <th>Date</th>
-                  <th style="text-align: right">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="comments-body"></tbody>
-            </table>
+            <div class="table-responsive">
+              <table id="comments-table">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Comment</th>
+                    <th>Post</th>
+                    <th>Date</th>
+                    <th style="text-align: right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="comments-body"></tbody>
+              </table>
+            </div>
             <div
               id="comments-empty"
               style="
@@ -715,7 +838,7 @@
     </div>
 
     <div id="stats-modal" class="modal-overlay">
-      <div class="modal-box" style="max-width: 800px">
+      <div class="modal-box">
         <div class="modal-header">
           <h3 class="modal-title" id="stats-modal-title">Article Stats</h3>
           <button class="icon-btn" onclick="closeStatsModal()">
@@ -723,10 +846,7 @@
           </button>
         </div>
         <div class="modal-body">
-          <div
-            class="stats-container"
-            style="margin-bottom: 2rem; grid-template-columns: repeat(2, 1fr)"
-          >
+          <div class="stats-container">
             <div class="stat-box">
               <div class="stat-icon"><i data-lucide="eye"></i></div>
               <div>
@@ -743,7 +863,7 @@
             </div>
           </div>
 
-          <div style="height: 300px; width: 100%">
+          <div style="position: relative; width: 100%; height: 280px">
             <canvas id="viewsChart"></canvas>
           </div>
         </div>

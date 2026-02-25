@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;1,600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/assets/css/error_page.css" />
+    <link rel="stylesheet" href="/assets/css/style.css" />
 
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -37,35 +37,13 @@
         }
       })();
     </script>
-
-    <meta
-      name="description"
-      content="Khushaank Gupta - AI Engineer & Developer Portfolio"
-    />
-    <meta
-      name="keywords"
-      content="Khushaank Gupta, AI Engineer, Machine Learning, Web Developer, Portfolio"
-    />
-    <meta name="author" content="Khushaank Gupta" />
-    <meta property="og:title" content="Khushaank Gupta Portfolio" />
-    <meta
-      property="og:description"
-      content="Portfolio of Khushaank Gupta, specializing in AI, Development, and Finance."
-    />
-    <meta property="og:type" content="website" />
   </head>
-  <body>
-    <div class="preloader">
-      <div class="loader-bar"></div>
-    </div>
-    <!-- 
-      Replaced old 404 block with custom error page markup provided by USER
-    -->
-    <div class="container fade-in">
-      <div class="gif">
+  <body class="error-page">
+    <div class="error-container fade-in">
+      <div class="error-gif">
         <img src="https://i.postimg.cc/2yrFyxKv/giphy.gif" alt="gif_ing" />
       </div>
-      <div class="content">
+      <div class="error-content">
         <h1 class="main-heading">This page is gone.</h1>
         <p>
           ...maybe the page you're looking for is not found or never existed.
@@ -76,7 +54,10 @@
       </div>
     </div>
 
-    <script src="/assets/js/search.js"></script>
-    <script src="/assets/js/script.js"></script>
+    <script>
+      if (typeof lucide !== "undefined") {
+        lucide.createIcons();
+      }
+    </script>
   </body>
 </html>

@@ -145,42 +145,78 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-let allPosts = [];
-
+// Watch auth state — only redirect on explicit sign-out, not initial load
 supabaseClient.auth.onAuthStateChange((event, session) => {
-  if (session) {
-    document.getElementById("auth-section").classList.add("hidden");
-    document.getElementById("dashboard-section").classList.remove("hidden");
-    fetchPosts();
-  } else {
-    document.getElementById("auth-section").classList.remove("hidden");
-    document.getElementById("dashboard-section").classList.add("hidden");
+  if (event === "SIGNED_OUT") {
+    window.location.href = "login.html";
+  }
+  if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
+    if (session) {
+      const dashboard = document.getElementById("dashboard-section");
+      if (dashboard) dashboard.classList.remove("hidden");
+      fetchPosts();
+    } else {
+      window.location.href = "login.html";
+    }
   }
 });
 
-document.getElementById("login-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const btn = e.target.querySelector('button[type="submit"]');
-  const originalText = btn.textContent;
-  btn.textContent = "Signing in...";
-  btn.disabled = true;
-
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const errorMsg = document.getElementById("auth-error");
-  errorMsg.textContent = "";
-
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password,
+window.switchView = function (viewId) {
+  const views = [
+    "dashboard",
+    "blogs",
+    "analytics",
+    "subscribers",
+    "messages",
+    "comments",
+    "files",
+    "settings",
+  ];
+  views.forEach((id) => {
+    document.getElementById(`view-${id}`).classList.add("hidden");
+    document.getElementById(`nav-${id}`).classList.remove("active");
   });
 
-  if (error) {
-    errorMsg.textContent = error.message;
-    btn.textContent = originalText;
-    btn.disabled = false;
+  document.getElementById(`view-${viewId}`).classList.remove("hidden");
+  document.getElementById(`nav-${viewId}`).classList.add("active");
+
+  if (viewId === "dashboard") {
+    allPageViews = [];
+    loadDashboardAnalytics(currentRange);
   }
-});
+  if (viewId === "blogs") {
+    fetchPosts();
+  }
+  if (viewId === "analytics") {
+    fetchAnalytics();
+  }
+  if (viewId === "subscribers") {
+    fetchSubscribers();
+  }
+  if (viewId === "messages") {
+    fetchMessages();
+  }
+  if (viewId === "comments") {
+    fetchComments();
+  }
+  if (viewId === "files") {
+    fetchFiles();
+  }
+};
+
+let allPosts = [];
+
+// Search filter for blog articles
+const searchInput = document.getElementById("search-input");
+if (searchInput) {
+  searchInput.addEventListener("input", (e) => {
+    const term = e.target.value.toLowerCase();
+    const filtered = allPosts.filter((p) =>
+      p.title.toLowerCase().includes(term),
+    );
+    renderTable(filtered);
+  });
+}
 
 async function signOut() {
   await supabaseClient.auth.signOut();
@@ -200,7 +236,7 @@ async function fetchPosts() {
   allPosts = posts;
   updateStats(posts);
   renderTable(posts);
-  fetchVisitorStats();
+  loadDashboardAnalytics(currentRange);
   if (!document.getElementById("view-analytics").classList.contains("hidden")) {
     fetchAnalytics();
   }
@@ -451,21 +487,234 @@ async function fetchVisitorStats() {
 }
 
 async function updateStats(posts) {
-  document.getElementById("total-posts").textContent = posts.length;
-  document.getElementById("total-views").textContent = posts.reduce(
-    (sum, p) => sum + (p.views || 0),
-    0,
+  const postsEl = document.getElementById("total-posts");
+  if (postsEl) postsEl.textContent = posts.length;
+}
+
+// Dashboard Analytics with Date Filtering
+let dashboardChart = null;
+let allPageViews = [];
+let currentRange = "today";
+
+async function loadDashboardAnalytics(range) {
+  currentRange = range || currentRange;
+
+  // Update active button
+  document.querySelectorAll(".date-filter-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.range === currentRange);
+  });
+
+  // Fetch all page views if not cached
+  if (allPageViews.length === 0) {
+    const { data, error } = await supabaseClient
+      .from("page_views")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(5000);
+
+    if (error) return;
+
+    allPageViews = (data || []).filter((v) => {
+      const isLocal =
+        (v.page_path &&
+          (v.page_path.includes("127.0.0.1") ||
+            v.page_path.includes("localhost"))) ||
+        (v.referrer &&
+          (v.referrer.includes("127.0.0.1") ||
+            v.referrer.includes("localhost")));
+      return !isLocal;
+    });
+  }
+
+  // Calculate date range
+  const now = new Date();
+  let startDate;
+
+  switch (currentRange) {
+    case "today":
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      break;
+    case "week":
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - 7);
+      break;
+    case "month":
+      startDate = new Date(now);
+      startDate.setMonth(now.getMonth() - 1);
+      break;
+    case "year":
+      startDate = new Date(now);
+      startDate.setFullYear(now.getFullYear() - 1);
+      break;
+    case "all":
+    default:
+      startDate = new Date(0);
+      break;
+  }
+
+  const filtered = allPageViews.filter(
+    (v) => new Date(v.created_at) >= startDate,
   );
 
-  const { count: siteViews, error } = await supabaseClient
-    .from("page_views")
-    .select("*", { count: "exact", head: true });
+  // Stats
+  const totalViews = filtered.length;
+  const uniqueVisitors = new Set(filtered.map((v) => v.tracking_id)).size;
 
-  if (!error) {
-    const siteViewsEl = document.getElementById("site-views");
-    if (siteViewsEl) siteViewsEl.textContent = siteViews;
+  // Group by date
+  const dailyMap = {};
+  filtered.forEach((v) => {
+    const d = new Date(v.created_at).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+    if (!dailyMap[d]) dailyMap[d] = { views: 0, visitors: new Set() };
+    dailyMap[d].views++;
+    if (v.tracking_id) dailyMap[d].visitors.add(v.tracking_id);
+  });
+
+  const days = Object.keys(dailyMap);
+  const avgDaily = days.length > 0 ? Math.round(totalViews / days.length) : 0;
+
+  // Update stat cards
+  const pvEl = document.getElementById("dash-page-views");
+  if (pvEl) pvEl.textContent = totalViews;
+  const uvEl = document.getElementById("dash-unique-visitors");
+  if (uvEl) uvEl.textContent = uniqueVisitors;
+  const avgEl = document.getElementById("dash-avg-daily");
+  if (avgEl) avgEl.textContent = avgDaily;
+
+  // Chart
+  const chartLabels = days.reverse();
+  const chartData = chartLabels.map((d) => dailyMap[d].views);
+
+  const ctx = document.getElementById("dashboardChart");
+  if (ctx) {
+    if (dashboardChart) dashboardChart.destroy();
+    dashboardChart = new Chart(ctx.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: chartLabels,
+        datasets: [
+          {
+            label: "Page Views",
+            data: chartData,
+            backgroundColor: "rgba(37, 99, 235, 0.7)",
+            borderRadius: 4,
+            borderSkipped: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } },
+          x: { grid: { display: false } },
+        },
+      },
+    });
   }
+
+  // Top pages
+  const pages = {};
+  filtered.forEach((v) => {
+    const path = v.page_path || "/";
+    if (!pages[path]) pages[path] = { views: 0 };
+    pages[path].views++;
+  });
+
+  const topPagesEl = document.getElementById("dash-top-pages");
+  if (topPagesEl) {
+    const sorted = Object.entries(pages)
+      .sort(([, a], [, b]) => b.views - a.views)
+      .slice(0, 5);
+    if (sorted.length === 0) {
+      topPagesEl.innerHTML =
+        '<div style="color: var(--text-muted);">No data for this period.</div>';
+    } else {
+      topPagesEl.innerHTML = sorted
+        .map(
+          ([path, data]) =>
+            `<div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+              <span style="font-weight: 500; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${formatPathTitle(path)}</span>
+              <span style="font-weight: 700; color: var(--text-main);">${data.views}</span>
+            </div>`,
+        )
+        .join("");
+    }
+  }
+
+  // Top referrers
+  const refs = {};
+  filtered.forEach((v) => {
+    let ref = v.referrer;
+    if (!ref || ref === "" || ref === "Direct") ref = "Direct";
+    else {
+      try {
+        ref = new URL(ref).hostname.replace("www.", "");
+      } catch (e) {
+        ref = "Unknown";
+      }
+    }
+    refs[ref] = (refs[ref] || 0) + 1;
+  });
+
+  const topRefsEl = document.getElementById("dash-top-referrers");
+  if (topRefsEl) {
+    const sorted = Object.entries(refs)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5);
+    if (sorted.length === 0) {
+      topRefsEl.innerHTML =
+        '<div style="color: var(--text-muted);">No data for this period.</div>';
+    } else {
+      topRefsEl.innerHTML = sorted
+        .map(
+          ([ref, count]) =>
+            `<div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border);">
+              <span style="font-weight: 500;">${ref}</span>
+              <span style="font-weight: 700; color: var(--text-main);">${count}</span>
+            </div>`,
+        )
+        .join("");
+    }
+  }
+
+  // Daily breakdown table
+  const dailyBody = document.getElementById("dash-daily-body");
+  if (dailyBody) {
+    const sortedDays = Object.entries(dailyMap).sort(
+      ([a], [b]) => new Date(b) - new Date(a),
+    );
+    if (sortedDays.length === 0) {
+      dailyBody.innerHTML =
+        '<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 2rem;">No data for this period.</td></tr>';
+    } else {
+      dailyBody.innerHTML = sortedDays
+        .map(
+          ([date, data]) =>
+            `<tr>
+              <td style="font-weight: 500;">${date}</td>
+              <td>${data.views}</td>
+              <td>${data.visitors.size}</td>
+            </tr>`,
+        )
+        .join("");
+    }
+  }
+
+  if (typeof lucide !== "undefined") lucide.createIcons();
 }
+
+// Date filter button clicks
+document.querySelectorAll(".date-filter-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    allPageViews = []; // Force refresh data on filter change
+    loadDashboardAnalytics(btn.dataset.range);
+  });
+});
 
 function renderTable(posts) {
   const tbody = document.getElementById("posts-body");
@@ -725,49 +974,6 @@ async function deletePost(id) {
   }
 }
 
-window.switchView = function (viewName) {
-  const views = {
-    dashboard: document.getElementById("view-dashboard"),
-    analytics: document.getElementById("view-analytics"),
-    subscribers: document.getElementById("view-subscribers"),
-    messages: document.getElementById("view-messages"),
-    comments: document.getElementById("view-comments"),
-    files: document.getElementById("view-files"),
-    settings: document.getElementById("view-settings"),
-  };
-  const navs = {
-    dashboard: document.getElementById("nav-dashboard"),
-    analytics: document.getElementById("nav-analytics"),
-    subscribers: document.getElementById("nav-subscribers"),
-    messages: document.getElementById("nav-messages"),
-    comments: document.getElementById("nav-comments"),
-    files: document.getElementById("nav-files"),
-    settings: document.getElementById("nav-settings"),
-  };
-
-  Object.keys(views).forEach((v) => {
-    if (v === viewName) {
-      views[v].classList.remove("hidden");
-      navs[v].classList.add("active");
-    } else {
-      views[v].classList.add("hidden");
-      navs[v].classList.remove("active");
-    }
-  });
-
-  if (viewName === "analytics") {
-    fetchAnalytics();
-  } else if (viewName === "subscribers") {
-    fetchSubscribers();
-  } else if (viewName === "messages") {
-    fetchMessages();
-  } else if (viewName === "comments") {
-    fetchComments();
-  } else if (viewName === "files") {
-    fetchFiles();
-  }
-};
-
 const defaultSettings = {
   blogTitle: "Khushaank's Blog",
   authorName: "Khushaank",
@@ -1000,60 +1206,92 @@ async function fetchFiles() {
   const emptyDiv = document.getElementById("files-empty");
   if (!grid) return;
 
-  grid.innerHTML = "";
+  grid.innerHTML =
+    '<div style="grid-column: 1/-1; text-align: center; padding: 2rem;">Loading files...</div>';
   if (emptyDiv) emptyDiv.style.display = "none";
 
-  const { data, error } = await supabaseClient.storage.from("assets").list("", {
-    limit: 100,
-    offset: 0,
-    sortBy: { column: "name", order: "asc" },
-  });
-
-  if (error) {
-    showToast("Error fetching files: " + error.message, "error");
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    if (emptyDiv) emptyDiv.style.display = "block";
-    grid.appendChild(emptyDiv);
-    return;
-  }
-
-  data.forEach((file) => {
-    const card = document.createElement("div");
-    card.className = "table-card";
-    card.style.padding = "1rem";
-    card.style.display = "flex";
-    card.style.flexDirection = "column";
-    card.style.gap = "0.75rem";
-
-    const isImage = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(file.name);
-    const { data: urlData } = supabaseClient.storage
+  try {
+    // Fetch from root
+    const { data: rootFiles, error: rootError } = await supabaseClient.storage
       .from("assets")
-      .getPublicUrl(file.name);
-    const publicUrl = urlData.publicUrl;
+      .list("", {
+        limit: 100,
+        sortBy: { column: "name", order: "asc" },
+      });
 
-    card.innerHTML = `
-      <div style="height: 120px; background: #f8fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-        ${isImage ? `<img src="${publicUrl}" style="max-width: 100%; max-height: 100%; object-fit: cover;">` : `<i data-lucide="file-text" size="48" style="color: #cbd5e1"></i>`}
-      </div>
-      <div style="overflow: hidden;">
-        <div style="font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${file.name}">${file.name}</div>
-        <div style="font-size: 0.75rem; color: var(--text-muted)">${(file.metadata.size / 1024).toFixed(1)} KB</div>
-      </div>
-      <div style="display: flex; gap: 0.5rem; margin-top: auto;">
-        <button class="btn btn-outline" style="flex: 1; padding: 0.4rem; font-size: 0.7rem;" onclick="copyToClipboard('${publicUrl}')">
-          <i data-lucide="copy" size="12"></i> Link
-        </button>
-        <button class="btn btn-danger" style="padding: 0.4rem; font-size: 0.7rem;" onclick="deleteFile('${file.name}')">
-          <i data-lucide="trash-2" size="12"></i>
-        </button>
-      </div>
-    `;
-    grid.appendChild(card);
-  });
-  lucide.createIcons();
+    // Fetch from attachments folder
+    const { data: attachmentsFiles, error: attachmentsError } =
+      await supabaseClient.storage.from("assets").list("attachments", {
+        limit: 100,
+        sortBy: { column: "name", order: "asc" },
+      });
+
+    if (rootError && attachmentsError) {
+      showToast(
+        "Error fetching files: " +
+          (rootError.message || attachmentsError.message),
+        "error",
+      );
+      grid.innerHTML = "";
+      if (emptyDiv) emptyDiv.style.display = "block";
+      return;
+    }
+
+    const allFiles = [
+      ...(rootFiles || [])
+        .filter((f) => f.id)
+        .map((f) => ({ ...f, path: f.name })),
+      ...(attachmentsFiles || [])
+        .filter((f) => f.id)
+        .map((f) => ({ ...f, path: `attachments/${f.name}` })),
+    ];
+
+    grid.innerHTML = "";
+
+    if (allFiles.length === 0) {
+      if (emptyDiv) emptyDiv.style.display = "block";
+      grid.appendChild(emptyDiv);
+      return;
+    }
+
+    allFiles.forEach((file) => {
+      const card = document.createElement("div");
+      card.className = "table-card fade-in";
+      card.style.padding = "1rem";
+      card.style.display = "flex";
+      card.style.flexDirection = "column";
+      card.style.gap = "0.75rem";
+      card.style.position = "relative";
+
+      const isImage = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(file.name);
+      const { data: urlData } = supabaseClient.storage
+        .from("assets")
+        .getPublicUrl(file.path);
+      const publicUrl = urlData.publicUrl;
+
+      card.innerHTML = `
+        <div style="height: 140px; background: #f8fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border);">
+          ${isImage ? `<img src="${publicUrl}" style="width: 100%; height: 100%; object-fit: cover;">` : `<i data-lucide="file-text" size="40" style="color: #cbd5e1"></i>`}
+        </div>
+        <div style="overflow: hidden;">
+          <div style="font-weight: 600; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main);" title="${file.name}">${file.name}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted)">${file.metadata ? (file.metadata.size / 1024).toFixed(1) : "0"} KB</div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; margin-top: auto;">
+          <button class="btn btn-outline" style="flex: 1; padding: 0.4rem; font-size: 0.7rem; justify-content: center;" onclick="copyToClipboard('${publicUrl}')">
+            <i data-lucide="copy" size="12"></i> Copy URL
+          </button>
+          <button class="btn btn-danger" style="padding: 0.4rem; font-size: 0.7rem;" onclick="deleteFile('${file.path}')">
+            <i data-lucide="trash-2" size="12"></i>
+          </button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+    lucide.createIcons();
+  } catch (err) {
+    showToast("Error: " + err.message, "error");
+  }
 }
 
 window.handleFileUpload = async function (input) {
@@ -1142,6 +1380,9 @@ async function fetchComments() {
     .map((comment) => {
       const date = new Date(comment.created_at).toLocaleString();
       const postTitle = comment.posts?.title || "Unknown Post";
+      const imageHtml = comment.image_url
+        ? `<div style="margin-top: 0.5rem;"><a href="${comment.image_url}" target="_blank"><img src="${comment.image_url}" style="max-width: 150px; border-radius: 4px; border: 1px solid var(--border);" /></a></div>`
+        : "";
       return `
       <tr>
         <td>
@@ -1149,6 +1390,7 @@ async function fetchComments() {
         </td>
         <td>
           <div style="font-size: 0.9rem; max-width: 400px; word-wrap: break-word;">${comment.content}</div>
+          ${imageHtml}
         </td>
         <td>
           <div style="font-size: 0.85rem; color: var(--text-muted)">${postTitle}</div>
@@ -1176,3 +1418,63 @@ window.deleteComment = async function (id) {
     }
   }
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebar-overlay");
+
+  document.addEventListener("click", (e) => {
+    const desktopToggle = e.target.closest("#desktop-sidebar-toggle");
+    const mobileToggle = e.target.closest("#mobile-sidebar-toggle");
+    const overlayTarget = e.target.closest("#sidebar-overlay");
+
+    if (desktopToggle && sidebar) {
+      if (window.innerWidth > 768) {
+        sidebar.classList.toggle("minimized");
+        const mainContent = document.querySelector(".main-content");
+        if (mainContent) {
+          mainContent.style.marginLeft = sidebar.classList.contains("minimized")
+            ? "76px"
+            : "260px";
+        }
+      } else {
+        if (sidebar.classList.contains("active")) {
+          sidebar.classList.remove("active");
+          if (overlay) overlay.classList.remove("active");
+        } else {
+          sidebar.classList.add("active");
+          if (overlay) overlay.classList.add("active");
+        }
+      }
+    }
+
+    if (mobileToggle && sidebar) {
+      sidebar.classList.add("active");
+      if (overlay) overlay.classList.add("active");
+    }
+
+    if (overlayTarget && sidebar) {
+      sidebar.classList.remove("active");
+      if (overlay) overlay.classList.remove("active");
+    }
+  });
+
+  // Handle window resizing
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) {
+      if (sidebar) sidebar.classList.remove("active");
+      if (overlay) overlay.classList.remove("active");
+    }
+  });
+
+  // Clicking nav item on mobile closes the sidebar
+  const navItems = document.querySelectorAll(".nav-item");
+  navItems.forEach((item) => {
+    item.addEventListener("click", () => {
+      if (window.innerWidth <= 768) {
+        if (sidebar) sidebar.classList.remove("active");
+        if (overlay) overlay.classList.remove("active");
+      }
+    });
+  });
+});

@@ -943,6 +943,7 @@ async function initViewerPage() {
   const commentForm = document.getElementById("comment-form");
   if (commentForm) {
     commentForm.addEventListener("submit", handleCommentSubmit);
+    setupCommentImageUploader();
   }
 
   const copyBtn = document.getElementById("btn-copy-link");
@@ -1602,7 +1603,7 @@ function initContactForm() {
       let errorMessage = "";
 
       if (dataObj.email) {
-        const emailRegex = /^[^s@]+@[^s@]+.[^s@]+$/;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(dataObj.email)) {
           isValid = false;
           errorMessage = "Please enter a valid email address.";
@@ -1740,6 +1741,9 @@ async function loadComments(postId, retries = 0) {
           month: "short",
           day: "numeric",
         });
+        const imageHtml = c.image_url
+          ? `<img src="${c.image_url}" class="comment-card-image" alt="Comment Image" loading="lazy">`
+          : "";
         return `
           <div class="comment-card${authorClass}">
             <div class="comment-header">
@@ -1747,6 +1751,7 @@ async function loadComments(postId, retries = 0) {
               <span class="comment-date">${dateStr}</span>
             </div>
             <div class="comment-body">${c.content}</div>
+            ${imageHtml}
           </div>
         `;
       })
@@ -1811,7 +1816,8 @@ async function checkAuth(retries = 0) {
 async function handleCommentSubmit(e) {
   e.preventDefault();
   const contentInput = document.getElementById("comment-content");
-  const btn = e.target.querySelector("button");
+  const fileInput = document.getElementById("comment-image-upload");
+  const btn = e.target.querySelector("button[type='submit']");
 
   if (!currentPostId) {
     alert("Article not loaded fully yet.");
@@ -1831,11 +1837,42 @@ async function handleCommentSubmit(e) {
   btn.textContent = "Posting...";
   btn.disabled = true;
 
+  let imageUrl = null;
+  const file = fileInput && fileInput.files && fileInput.files[0];
+
+  if (file) {
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `comments/${fileName}`;
+
+      const { error: uploadError, data } = await window.supabaseClient.storage
+        .from("assets")
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: publicUrlData } = window.supabaseClient.storage
+        .from("assets")
+        .getPublicUrl(filePath);
+
+      imageUrl = publicUrlData.publicUrl;
+    } catch (uploadError) {
+      alert("Error uploading image: " + uploadError.message);
+      btn.textContent = originalText;
+      btn.disabled = false;
+      return;
+    }
+  }
+
   const { error } = await window.supabaseClient.from("comments").insert([
     {
       post_id: currentPostId,
       user_name: userName,
       content: contentInput.value,
+      image_url: imageUrl,
     },
   ]);
 
@@ -1843,11 +1880,51 @@ async function handleCommentSubmit(e) {
     alert("Error posting comment: " + error.message);
   } else {
     contentInput.value = "";
+    if (fileInput) {
+      fileInput.value = "";
+    }
+    const previewContainer = document.getElementById("comment-image-preview");
+    const previewImg = document.getElementById("preview-img");
+    if (previewContainer && previewImg) {
+      previewImg.src = "";
+      previewContainer.style.display = "none";
+    }
     loadComments(currentPostId);
   }
 
   btn.textContent = originalText;
   btn.disabled = false;
+}
+
+function setupCommentImageUploader() {
+  const addBtn = document.getElementById("add-image-btn");
+  const fileInput = document.getElementById("comment-image-upload");
+  const previewContainer = document.getElementById("comment-image-preview");
+  const previewImg = document.getElementById("preview-img");
+  const removeBtn = document.getElementById("remove-image-btn");
+
+  if (!addBtn || !fileInput) return;
+
+  addBtn.addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      previewImg.src = url;
+      previewContainer.style.display = "inline-block";
+    } else {
+      previewContainer.style.display = "none";
+    }
+  });
+
+  removeBtn.addEventListener("click", () => {
+    fileInput.value = "";
+    previewImg.src = "";
+    previewContainer.style.display = "none";
+  });
 }
 
 async function initArticleNavigation(currentPost) {
