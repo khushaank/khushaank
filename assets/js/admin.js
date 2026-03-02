@@ -1,15 +1,3 @@
-const SUPABASE_URL = "https://hzxwqxmldlncrhqxlnlq.supabase.co";
-const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6eHdxeG1sZGxuY3JocXhsbmxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxODIwMDEsImV4cCI6MjA4NTc1ODAwMX0.pP3i8KquZmqhiUkaTw3ROi86mslTyzK5ysD2va1JI10";
-
-if (typeof window.supabaseClient === "undefined") {
-  window.supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY,
-  );
-}
-const supabaseClient = window.supabaseClient;
-
 let quill;
 document.addEventListener("DOMContentLoaded", () => {
   const Link = Quill.import("formats/link");
@@ -145,22 +133,40 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Watch auth state — only redirect on explicit sign-out, not initial load
-supabaseClient.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_OUT") {
-    window.location.href = "login.html";
-  }
-  if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
-    if (session) {
-      const dashboard = document.getElementById("dashboard-section");
-      if (dashboard) dashboard.classList.remove("hidden");
-      fetchPosts();
-    } else {
+document.addEventListener("DOMContentLoaded", async () => {
+  const dashboard = document.getElementById("dashboard-section");
+  const authMsg = document.createElement("div");
+
+  try {
+    const {
+      data: { session },
+      error,
+    } = await supabaseClient.auth.getSession();
+    if (error || !session) {
       window.location.href = "login.html";
+      return;
     }
+
+    // Valid session
+    if (dashboard) dashboard.classList.remove("hidden");
+    fetchPosts();
+
+    // Watch auth state — only redirect on explicit sign-out, not initial load
+    supabaseClient.auth.onAuthStateChange((event, s) => {
+      if (event === "SIGNED_OUT") {
+        window.location.href = "login.html";
+      }
+    });
+  } catch (err) {
+    if (dashboard) dashboard.classList.add("hidden");
+    authMsg.innerHTML = `<div style="text-align:center; padding: 4rem; max-width: 600px; margin: 0 auto; margin-top: 10%;">
+      <h2 style="font-family: var(--font-heading); color: var(--text-main); margin-bottom: 1rem;">Network Error</h2>
+      <p style="color: var(--text-muted); line-height: 1.6;">Failed to connect to the authentication server at Supabase. This is typically caused by aggressive ad-blockers (like uBlock Origin, Brave Shields) or university/corporate Wi-Fi networks blocking outgoing API connections.</p>
+      <br><p style="color: #ef4444; font-weight: 600;">Error: ${err.message}</p>
+    </div>`;
+    document.body.appendChild(authMsg);
   }
 });
-
 window.switchView = function (viewId) {
   const views = [
     "dashboard",
@@ -223,13 +229,20 @@ async function signOut() {
 }
 
 async function fetchPosts() {
-  const { data: posts, error } = await supabaseClient
-    .from("posts")
-    .select("*")
-    .order("created_at", { ascending: false });
+  let posts = [];
+  try {
+    const { data, error } = await supabaseClient
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    // console.error("Error fetching posts:", error);
+    if (error) {
+      console.warn("Error fetching posts:", error);
+      return;
+    }
+    posts = data || [];
+  } catch (err) {
+    console.warn("Network error fetching posts:", err.message);
     return;
   }
 
@@ -247,15 +260,21 @@ async function fetchAnalytics() {
 
   if (!container) return;
 
-  const { data: rawViews, error: viewError } = await supabaseClient
-    .from("page_views")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(200);
+  let rawViews = [];
+  try {
+    const { data, error: viewError } = await supabaseClient
+      .from("page_views")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
 
-  if (viewError) {
-    // console.error("Analytics fetch error:", viewError);
-    container.innerHTML = `<div class="error-msg">Error loading analytics: ${viewError.message}</div>`;
+    if (viewError) {
+      container.innerHTML = `<div class="error-msg">Error loading analytics: ${viewError.message}</div>`;
+      return;
+    }
+    rawViews = data || [];
+  } catch (err) {
+    container.innerHTML = `<div class="error-msg">Network Error loading analytics: ${err.message}</div>`;
     return;
   }
 
@@ -506,24 +525,29 @@ async function loadDashboardAnalytics(range) {
 
   // Fetch all page views if not cached
   if (allPageViews.length === 0) {
-    const { data, error } = await supabaseClient
-      .from("page_views")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(5000);
+    try {
+      const { data, error } = await supabaseClient
+        .from("page_views")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(5000);
 
-    if (error) return;
+      if (error) return;
 
-    allPageViews = (data || []).filter((v) => {
-      const isLocal =
-        (v.page_path &&
-          (v.page_path.includes("127.0.0.1") ||
-            v.page_path.includes("localhost"))) ||
-        (v.referrer &&
-          (v.referrer.includes("127.0.0.1") ||
-            v.referrer.includes("localhost")));
-      return !isLocal;
-    });
+      allPageViews = (data || []).filter((v) => {
+        const isLocal =
+          (v.page_path &&
+            (v.page_path.includes("127.0.0.1") ||
+              v.page_path.includes("localhost"))) ||
+          (v.referrer &&
+            (v.referrer.includes("127.0.0.1") ||
+              v.referrer.includes("localhost")));
+        return !isLocal;
+      });
+    } catch (err) {
+      console.warn("Network error fetching dashboard analytics:", err.message);
+      return;
+    }
   }
 
   // Calculate date range

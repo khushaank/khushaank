@@ -1,11 +1,16 @@
 :root {
-  --bg-body: #ffffff;
-  --bg-surface: #f8f9fa;
-  --text-main: #111111;
-  --text-muted: #666666;
-  --border: #eeeeee;
-  --accent: #2563eb;
-  --accent-rgb: 37, 99, 235;
+  --bg-body: #fafcfd;
+  --bg-surface: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --accent: #4f46e5;
+  --accent-rgb: 79, 70, 229;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-glow: 0 0 20px rgba(var(--accent-rgb), 0.15);
 
   --spacing-container: 5%;
   --max-width: 1200px;
@@ -66,23 +71,36 @@ html {
 
 body {
   font-family: var(--font-body);
-  background-color: #ffffff;
-  background-image:
-    radial-gradient(at 40% 20%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
-    radial-gradient(at 80% 0%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
-    radial-gradient(at 80% 50%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
-    radial-gradient(at 80% 100%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
-    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.03) 0px, transparent 50%);
-  background-attachment: fixed;
-  background-size: cover;
+  background-color: var(--bg-body);
   color: var(--text-main);
   line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: -1;
+  background:
+    radial-gradient(
+      circle at 15% 50%,
+      rgba(var(--accent-rgb), 0.05) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 85% 30%,
+      rgba(var(--accent-rgb), 0.08) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
 }
 
 ::-webkit-scrollbar {
@@ -228,14 +246,16 @@ h2 {
   transform: translateX(-50%);
   width: 90%;
   max-width: 1000px;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   z-index: 10000;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 100px;
   padding: 0.8rem 2rem;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.03),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 .nav-container {
@@ -451,10 +471,16 @@ input#hamburger:checked + label.hamburger .line:nth-child(3) {
   color: #fff;
   border-radius: 4px;
   font-weight: 500;
-  transition: opacity 0.2s;
+  transition: all 0.3s var(--ease);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 .btn:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  background: var(--accent);
+  opacity: 1;
 }
 .btn-outline {
   background: transparent;
@@ -608,14 +634,40 @@ input#hamburger:checked + label.hamburger .line:nth-child(3) {
   padding: 2rem;
   border-radius: 12px;
   border: 1px solid var(--border);
-  transition: all 0.3s var(--ease);
+  transition: all 0.4s var(--ease);
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.bento-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(var(--accent-rgb), 0.03),
+    transparent
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
 }
 
 .bento-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  border-color: rgba(var(--accent-rgb), 0.3);
+}
+
+.bento-card:hover::before {
+  transform: translateX(100%);
 }
 
 .bento-card.wide {
@@ -6590,8 +6642,15 @@ textarea.form-control {
   box-shadow: 0 16px 40px -12px rgba(37, 99, 235, 0.12);
 }
 
+.feature-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
 .showcase-card.feature {
-  grid-row: 1 / -1;
+  flex: 1;
 }
 
 .showcase-glow {

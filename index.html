@@ -66,8 +66,8 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/css/style.css" />
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="/assets/js/lucide.min.js"></script>
+    <script src="/assets/js/supabase.min.js"></script>
     <script type="application/ld+json">
       [
         {
@@ -523,38 +523,61 @@
         </div>
 
         <div class="innovation-showcase-grid">
-          <div class="showcase-card feature">
-            <div class="showcase-glow"></div>
-            <div class="showcase-content">
-              <span class="badge showcase-badge">Featured Innovation</span>
-              <h3 class="showcase-title">Local-First Finance Architecture</h3>
-              <div class="showcase-details">
-                <div class="detail-row">
-                  <span class="detail-label">Challenge</span>
-                  <p>
-                    Building a 100% private financial tracker without cloud
-                    dependencies.
-                  </p>
+          <div class="feature-column">
+            <div class="showcase-card feature">
+              <div class="showcase-glow"></div>
+              <div class="showcase-content">
+                <span class="badge showcase-badge">Featured Innovation</span>
+                <h3 class="showcase-title">Local-First Finance Architecture</h3>
+                <div class="showcase-details">
+                  <div class="detail-row">
+                    <span class="detail-label">Challenge</span>
+                    <p>
+                      Building a 100% private financial tracker without cloud
+                      dependencies.
+                    </p>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Engineered</span>
+                    <p>
+                      Vanilla JS IndexedDB matrix layered with AES-256
+                      encryption.
+                    </p>
+                  </div>
+                  <div class="detail-row highlight">
+                    <span class="detail-label">Impact</span>
+                    <p>
+                      Sub-50ms query times locally with total data anonymity.
+                    </p>
+                  </div>
                 </div>
-                <div class="detail-row">
-                  <span class="detail-label">Engineered</span>
-                  <p>
-                    Vanilla JS IndexedDB matrix layered with AES-256 encryption.
-                  </p>
-                </div>
-                <div class="detail-row highlight">
-                  <span class="detail-label">Impact</span>
-                  <p>Sub-50ms query times locally with total data anonymity.</p>
-                </div>
+                <a
+                  href="https://github.com/khushaank"
+                  class="btn btn-showcase"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Explore Architecture <i data-lucide="arrow-right"></i>
+                </a>
               </div>
-              <a
-                href="https://github.com/khushaank"
-                class="btn btn-showcase"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Explore Architecture <i data-lucide="arrow-right"></i>
-              </a>
+            </div>
+
+            <div class="showcase-card secondary">
+              <div class="showcase-bg icon-bg">
+                <i data-lucide="zap"></i>
+              </div>
+              <div class="showcase-content">
+                <span class="badge compact">Performance</span>
+                <h4>Web Speed &amp; Code Optimization</h4>
+                <p class="showcase-desc">
+                  Achieving peak Lighthouse performance through local asset
+                  caching, efficient DOM manipulation, and modern CSS
+                  containment without heavy frameworks.
+                </p>
+                <a href="#about" class="link-arrow"
+                  >Learn More <i data-lucide="chevron-right"></i
+                ></a>
+              </div>
             </div>
           </div>
 
@@ -875,6 +898,7 @@
     </button>
 
     <script src="assets/js/search.js"></script>
+    <script src="assets/js/supabase-config.js"></script>
     <script src="assets/js/script.js?v=3"></script>
   </body>
 </html>

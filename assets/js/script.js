@@ -549,31 +549,6 @@ window.addEventListener("popstate", () => {
   }
 });
 
-const SUPABASE_URL = "https://hzxwqxmldlncrhqxlnlq.supabase.co";
-const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6eHdxeG1sZGxuY3JocXhsbmxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxODIwMDEsImV4cCI6MjA4NTc1ODAwMX0.pP3i8KquZmqhiUkaTw3ROi86mslTyzK5ysD2va1JI10";
-
-function initSupabase() {
-  if (typeof window.supabase !== "undefined" && !window.supabaseClient) {
-    window.supabaseClient = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY,
-      {
-        auth: {
-          detectSessionFromUrl: true,
-          flowType: "implicit",
-        },
-      },
-    );
-  }
-}
-
-initSupabase();
-
-window.addEventListener("load", () => {
-  initSupabase();
-});
-
 window.allSearchablePosts = [];
 
 if ("serviceWorker" in navigator) {
@@ -612,10 +587,16 @@ async function loadProjects() {
   if (!menuContainer) return;
   if (!window.supabaseClient) return;
 
-  const { data: projects } = await window.supabaseClient
-    .from("projects")
-    .select("*")
-    .order("display_order", { ascending: true });
+  let projects = [];
+  try {
+    const { data } = await window.supabaseClient
+      .from("projects")
+      .select("*")
+      .order("display_order", { ascending: true });
+    projects = data;
+  } catch (err) {
+    console.warn("Failed to load projects:", err.message);
+  }
 
   if (!projects || projects.length === 0) {
     menuContainer.innerHTML = "<p>No case studies found.</p>";
@@ -740,11 +721,17 @@ async function loadLatestPosts() {
     }
   }
 
-  const { data: posts } = await window.supabaseClient
-    .from("posts")
-    .select("id, title, excerpt, created_at, slug, category, image_url")
-    .order("created_at", { ascending: false })
-    .limit(3);
+  let posts = null;
+  try {
+    const { data } = await window.supabaseClient
+      .from("posts")
+      .select("id, title, excerpt, created_at, slug, category, image_url")
+      .order("created_at", { ascending: false })
+      .limit(3);
+    posts = data;
+  } catch (err) {
+    console.warn("Failed to load latest posts:", err.message);
+  }
 
   if (posts && posts.length > 0) {
     sessionStorage.setItem("latest_posts_cache", JSON.stringify(posts));
@@ -772,10 +759,16 @@ async function loadPosts() {
     renderBlogGrid(posts, grid);
   }
 
-  const { data: posts } = await window.supabaseClient
-    .from("posts")
-    .select("id, title, excerpt, created_at, slug, category, image_url")
-    .order("created_at", { ascending: false });
+  let posts = null;
+  try {
+    const { data } = await window.supabaseClient
+      .from("posts")
+      .select("id, title, excerpt, created_at, slug, category, image_url")
+      .order("created_at", { ascending: false });
+    posts = data;
+  } catch (err) {
+    console.warn("Failed to load all posts:", err.message);
+  }
 
   if (posts) {
     sessionStorage.setItem("all_posts_cache", JSON.stringify(posts));
