@@ -287,29 +287,10 @@ body {
 }
 
 .page-header {
-  position: sticky;
-  top: 1rem;
-  z-index: 80;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  padding: 1.25rem 2rem;
-  border-radius: 20px;
-  margin-bottom: 3rem;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 10px 15px -3px rgba(0, 0, 0, 0.03);
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.page-header:hover {
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
-  transform: translateY(-1px);
+  align-items: flex-end;
+  margin-bottom: 3rem;
 }
 
 .page-title {
@@ -1471,13 +1452,21 @@ canvas {
 
   .mobile-header {
     display: flex !important;
-    margin: 0 !important;
-    top: 0 !important;
-    border-radius: 0 !important;
-    padding: 1rem !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1.25rem !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 18px !important;
     position: sticky !important;
-    background: #fff !important;
+    top: 1rem !important;
+    z-index: 90;
+    margin: 0 1rem 1.5rem !important;
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.04),
+      0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
   }
 
   .sidebar {
