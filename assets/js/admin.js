@@ -1058,13 +1058,24 @@ function closeModal() {
   modal.classList.remove("active");
 }
 
-function showToast(message) {
+function showToast(message, type = "success") {
   const toast = document.getElementById("toast");
+  if (!toast) return;
+
   toast.textContent = message;
+  toast.style.background = type === "error" ? "#ef4444" : "#0f172a";
+
+  toast.style.display = "block";
+  // Force reflow
+  toast.offsetHeight;
   toast.classList.add("visible");
+
   setTimeout(() => {
     toast.classList.remove("visible");
-  }, 3000);
+    setTimeout(() => {
+      toast.style.display = "none";
+    }, 400);
+  }, 3500);
 }
 
 form.addEventListener("submit", async (e) => {
@@ -2077,8 +2088,39 @@ document.addEventListener("DOMContentLoaded", () => {
     if (preloader) {
       preloader.style.opacity = "0";
       setTimeout(() => {
-        preloader.style.display = "none";
-      }, 500);
+        preloader.remove(); // Remove from DOM for security/performance
+      }, 600);
     }
   });
+
+  /* Security: Session Watchdog */
+  setInterval(async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = "login.html";
+      }
+    } catch (e) {
+      console.warn("Session check failed", e);
+    }
+  }, 30000);
+
+  /* Security: Idle Logout (15 mins) */
+  let idleTimer;
+  const resetIdleTimer = () => {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      supabaseClient.auth.signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    }, 900000);
+  };
+  ["mousemove", "mousedown", "keydown", "touchstart", "scroll"].forEach(
+    (evt) => {
+      document.addEventListener(evt, resetIdleTimer, true);
+    },
+  );
+  resetIdleTimer();
 });

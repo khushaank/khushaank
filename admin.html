@@ -966,6 +966,43 @@
                 </div>
               </div>
             </section>
+
+            <section class="settings-section">
+              <div class="section-header">
+                <i data-lucide="shield-check" size="20"></i>
+                <h3>System Security</h3>
+              </div>
+              <div class="table-card" style="padding: 1.5rem">
+                <div class="toggle-group">
+                  <div>
+                    <h4 style="font-size: 0.95rem; margin-bottom: 2px">
+                      Secure Session Watchdog
+                    </h4>
+                    <p class="form-help">
+                      Automatically monitor session validity and log out if expired.
+                    </p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="set-watchdog" checked />
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="toggle-group" style="margin-top: 1.5rem">
+                  <div>
+                    <h4 style="font-size: 0.95rem; margin-bottom: 2px">
+                      Auto Logout on Idle
+                    </h4>
+                    <p class="form-help">
+                      Sign out after 15 minutes of inactivity.
+                    </p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="set-idle-logout" checked />
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
       </main>
