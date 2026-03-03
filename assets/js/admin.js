@@ -179,6 +179,7 @@ window.switchView = function (viewId) {
     "files",
     "settings",
   ];
+
   views.forEach((id) => {
     const view = document.getElementById(`view-${id}`);
     const nav = document.getElementById(`nav-${id}`);
@@ -191,31 +192,31 @@ window.switchView = function (viewId) {
   if (activeView) activeView.classList.remove("hidden");
   if (activeNav) activeNav.classList.add("active");
 
-  if (viewId === "dashboard") {
-    allPageViews = [];
-    loadDashboardAnalytics(currentRange);
-  }
-  if (viewId === "blogs") {
-    fetchPosts();
-  }
-  if (viewId === "analytics") {
-    fetchAnalytics();
-  }
+  // Reset/Clear specific views
   if (viewId === "audience") {
+    // Clear profile if no search term
+    const input = document.getElementById("user-search-input");
+    if (input && !input.value) {
+      const profileData = document.getElementById("user-profile-data");
+      const emptyState = document.getElementById("audience-empty");
+      if (profileData) profileData.style.display = "none";
+      if (emptyState) emptyState.style.display = "block";
+    }
     refreshAudienceList();
   }
-  if (viewId === "subscribers") {
-    fetchSubscribers();
-  }
-  if (viewId === "messages") {
-    fetchMessages();
-  }
-  if (viewId === "comments") {
-    fetchComments();
-  }
-  if (viewId === "files") {
-    fetchFiles();
-  }
+
+  // Trigger data fetches
+  const fetchMap = {
+    dashboard: () => loadDashboardAnalytics(currentRange),
+    blogs: fetchPosts,
+    analytics: fetchAnalytics,
+    subscribers: fetchSubscribers,
+    messages: fetchMessages,
+    comments: fetchComments,
+    files: fetchFiles,
+  };
+
+  if (fetchMap[viewId]) fetchMap[viewId]();
 };
 
 let allPosts = [];
@@ -1812,34 +1813,38 @@ window.refreshAudienceList = async function () {
   if (!dl) return;
 
   try {
-    const [subs, msgs, comms] = await Promise.all([
-      supabaseClient.from("subscribers").select("email, created_at"),
-      supabaseClient.from("messages").select("email, name, created_at"),
-      supabaseClient.from("comments").select("user_name, created_at"),
-    ]);
+    const { data: subs } = await supabaseClient
+      .from("subscribers")
+      .select("email, created_at");
+    const { data: msgs } = await supabaseClient
+      .from("messages")
+      .select("email, name, created_at");
+    const { data: comms } = await supabaseClient
+      .from("comments")
+      .select("user_name, created_at");
 
     const userMap = new Map();
 
-    (subs.data || []).forEach((s) => {
+    (subs || []).forEach((s) => {
       if (s.email) {
         const email = s.email.toLowerCase();
         userMap.set(email, { email: s.email, name: "", type: "Subscriber" });
       }
     });
 
-    (msgs.data || []).forEach((m) => {
+    (msgs || []).forEach((m) => {
       if (m.email) {
         const email = m.email.toLowerCase();
         const existing = userMap.get(email);
         userMap.set(email, {
           email: m.email,
           name: m.name || (existing ? existing.name : ""),
-          type: existing ? "Subscriber + Lead" : "Lead",
+          type: existing ? existing.type + ", Lead" : "Lead",
         });
       }
     });
 
-    (comms.data || []).forEach((c) => {
+    (comms || []).forEach((c) => {
       const emailMatch = c.user_name && c.user_name.includes("@");
       if (emailMatch) {
         const email = c.user_name.toLowerCase();
@@ -1860,11 +1865,12 @@ window.refreshAudienceList = async function () {
     allAudienceUsers.forEach((u) => {
       const opt = document.createElement("option");
       opt.value = u.email;
-      opt.textContent = `${u.name ? `${u.name} ` : ""}(${u.type})`;
+      const desc = u.name ? `${u.name} · ${u.type}` : u.type;
+      opt.textContent = desc;
       dl.appendChild(opt);
     });
 
-    if (typeof lucide !== "undefined") lucide.createIcons();
+    console.log(`Audience synchronized: ${allAudienceUsers.length} profiles.`);
   } catch (err) {
     console.warn("Audience fetch error:", err);
     showToast("Error loading user records", "error");

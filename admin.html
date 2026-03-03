@@ -680,6 +680,7 @@
                     placeholder="Type email to search..."
                     list="user-datalist"
                     style="flex: 1"
+                    oninput="if(this.list.querySelector('option[value=\''+this.value+'\']')) loadUserActivity(this.value)"
                     onchange="loadUserActivity(this.value)"
                   />
                   <datalist id="user-datalist"></datalist>
