@@ -1517,7 +1517,12 @@ function initNewsletter() {
 
         const { error } = await window.supabaseClient
           .from("subscribers")
-          .insert([{ email: input.value }]);
+          .insert([
+            {
+              email: input.value,
+              tracking_id: localStorage.getItem("tracking_id"),
+            },
+          ]);
 
         if (error) {
           if (error.code === "23505") {
@@ -1642,6 +1647,7 @@ function initContactForm() {
               email: dataObj.email || "Unknown",
               subject: dataObj.subject || "Contact Form Submission",
               message: dataObj.message || "No Message",
+              tracking_id: localStorage.getItem("tracking_id"),
             },
           ]);
         }
@@ -1866,6 +1872,7 @@ async function handleCommentSubmit(e) {
       user_name: userName,
       content: contentInput.value,
       image_url: imageUrl,
+      tracking_id: localStorage.getItem("tracking_id"),
     },
   ]);
 
@@ -2326,10 +2333,14 @@ async function trackPageView() {
   };
 
   try {
-    window.supabaseClient
-      .from("page_views")
-      .insert([payload])
-      .then(() => {});
+    const {
+      data: { session },
+    } = await window.supabaseClient.auth.getSession();
+    if (session && session.user) {
+      payload.user_email = session.user.email;
+    }
+
+    await window.supabaseClient.from("page_views").insert([payload]);
   } catch (err) {}
 }
 

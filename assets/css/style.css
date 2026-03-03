@@ -3612,8 +3612,13 @@ body {
 
 .policy-content {
   max-width: 800px;
-  margin: 6rem auto 4rem;
+  margin: 10rem auto 4rem;
   padding: 0 1.5rem;
+}
+@media (max-width: 768px) {
+  .policy-content {
+    margin: 8rem auto 3rem;
+  }
 }
 .policy-content h1 {
   font-family: var(--font-heading);
@@ -3624,6 +3629,7 @@ body {
   font-family: var(--font-heading);
   margin-top: 2rem;
   margin-bottom: 1rem;
+  margin-left: 0;
 }
 .policy-content p,
 .policy-content li {

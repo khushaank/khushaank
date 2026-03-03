@@ -141,6 +141,14 @@
             <span class="nav-text">Analytics</span>
           </div>
           <div
+            id="nav-audience"
+            class="nav-item"
+            onclick="switchView('audience')"
+          >
+            <i data-lucide="user-check" size="18" style="min-width: 18px"></i>
+            <span class="nav-text">Audience</span>
+          </div>
+          <div
             id="nav-subscribers"
             class="nav-item"
             onclick="switchView('subscribers')"
@@ -349,7 +357,7 @@
                 Manage your blog posts and insights.
               </p>
             </div>
-            <div style="display: flex; gap: 1rem; align-items: center">
+            <div style="display: flex; gap: 0.5rem; align-items: center">
               <div class="input-group" style="margin-bottom: 0">
                 <input
                   type="text"
@@ -359,8 +367,8 @@
                   style="padding: 0.5rem 1rem; font-size: 0.9rem; width: 250px"
                 />
               </div>
-              <button class="btn btn-primary" onclick="openModal()">
-                <i data-lucide="plus" size="16"></i> Create New
+              <button class="icon-btn" onclick="openModal()" title="Create New">
+                <i data-lucide="plus-circle" size="24"></i>
               </button>
             </div>
           </div>
@@ -401,8 +409,8 @@
                 Real-time insights from your visitors.
               </p>
             </div>
-            <button class="btn btn-outline" onclick="fetchAnalytics()">
-              <i data-lucide="refresh-cw" size="14"></i> Refresh
+            <button class="icon-btn" onclick="fetchAnalytics()" title="Refresh">
+              <i data-lucide="refresh-cw" size="20"></i>
             </button>
           </div>
 
@@ -428,12 +436,30 @@
                 Manage your newsletter audience.
               </p>
             </div>
-            <div style="display: flex; gap: 1rem">
-              <button class="btn btn-outline" onclick="fetchSubscribers()">
-                <i data-lucide="refresh-cw" size="14"></i> Refresh
+            <div style="display: flex; gap: 0.75rem; align-items: center">
+              <div class="input-group" style="margin-bottom: 0">
+                <input
+                  type="text"
+                  id="search-subscribers"
+                  placeholder="Search email..."
+                  class="form-input"
+                  style="padding: 0.5rem 1rem; font-size: 0.85rem; width: 180px"
+                  onkeyup="filterSubscribers()"
+                />
+              </div>
+              <button
+                class="icon-btn"
+                onclick="fetchSubscribers()"
+                title="Refresh"
+              >
+                <i data-lucide="refresh-cw" size="20"></i>
               </button>
-              <button class="btn btn-primary" onclick="exportSubscribers()">
-                <i data-lucide="download" size="14"></i> Export CSV
+              <button
+                class="icon-btn"
+                onclick="exportSubscribers()"
+                title="Export CSV"
+              >
+                <i data-lucide="download" size="20"></i>
               </button>
             </div>
           </div>
@@ -485,9 +511,25 @@
                 Inbound inquiries from your contact form.
               </p>
             </div>
-            <button class="btn btn-outline" onclick="fetchMessages()">
-              <i data-lucide="refresh-cw" size="14"></i> Refresh
-            </button>
+            <div style="display: flex; gap: 0.75rem; align-items: center">
+              <div class="input-group" style="margin-bottom: 0">
+                <input
+                  type="text"
+                  id="search-messages"
+                  placeholder="Search name/email/subject..."
+                  class="form-input"
+                  style="padding: 0.5rem 1rem; font-size: 0.85rem; width: 220px"
+                  onkeyup="filterMessages()"
+                />
+              </div>
+              <button
+                class="icon-btn"
+                onclick="fetchMessages()"
+                title="Refresh"
+              >
+                <i data-lucide="refresh-cw" size="20"></i>
+              </button>
+            </div>
           </div>
           <div class="table-card">
             <div class="table-responsive">
@@ -525,10 +567,11 @@
               </p>
             </div>
             <button
-              class="btn btn-primary"
+              class="icon-btn"
               onclick="document.getElementById('file-upload').click()"
+              title="Upload File"
             >
-              <i data-lucide="upload" size="16"></i> Upload File
+              <i data-lucide="upload-cloud" size="24"></i>
             </button>
             <input
               type="file"
@@ -560,6 +603,25 @@
                 Manage user comments across your blog posts.
               </p>
             </div>
+            <div style="display: flex; gap: 0.75rem; align-items: center">
+              <div class="input-group" style="margin-bottom: 0">
+                <input
+                  type="text"
+                  id="search-comments"
+                  placeholder="Search user/content..."
+                  class="form-input"
+                  style="padding: 0.5rem 1rem; font-size: 0.85rem; width: 220px"
+                  onkeyup="filterComments()"
+                />
+              </div>
+              <button
+                class="icon-btn"
+                onclick="fetchComments()"
+                title="Refresh"
+              >
+                <i data-lucide="refresh-cw" size="20"></i>
+              </button>
+            </div>
           </div>
 
           <div class="table-card">
@@ -590,114 +652,319 @@
           </div>
         </div>
 
+        <div id="view-audience" class="hidden">
+          <div class="page-header">
+            <div>
+              <h2 class="page-title">User Intelligence</h2>
+              <p style="color: var(--text-muted); font-size: 0.9rem">
+                Analyze individual user journeys and cross-platform interactions.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="table-card"
+            style="margin-bottom: 1.5rem; padding: 1.25rem"
+          >
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+              <div
+                class="form-group"
+                style="flex: 1; min-width: 250px; margin-bottom: 0"
+              >
+                <label class="form-label">Search or Select User (Email)</label>
+                <div style="display: flex; gap: 0.5rem">
+                  <input
+                    type="text"
+                    id="user-search-input"
+                    class="form-input"
+                    placeholder="Type email to search..."
+                    list="user-datalist"
+                    style="flex: 1"
+                    onchange="loadUserActivity(this.value)"
+                  />
+                  <datalist id="user-datalist"></datalist>
+                  <button
+                    class="icon-btn"
+                    onclick="refreshAudienceList()"
+                    title="Refresh User List"
+                  >
+                    <i data-lucide="refresh-cw" size="18"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="user-profile-data" style="display: none">
+            <div
+              class="stats-container"
+              style="
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                margin-bottom: 1.5rem;
+              "
+            >
+              <div class="stat-card">
+                <div class="stat-icon" style="background: #e0e7ff; color: #4338ca">
+                  <i data-lucide="eye" size="20"></i>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-value" id="user-stat-views">0</div>
+                  <div class="stat-label">Page Views</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon" style="background: #dcfce7; color: #15803d">
+                  <i data-lucide="message-square" size="20"></i>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-value" id="user-stat-comments">0</div>
+                  <div class="stat-label">Comments</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon" style="background: #fef9c3; color: #a16207">
+                  <i data-lucide="mail" size="20"></i>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-value" id="user-stat-messages">0</div>
+                  <div class="stat-label">Messages</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon" style="background: #ffedd5; color: #9a3412">
+                  <i data-lucide="user-check" size="20"></i>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-value" id="user-stat-subscriber">No</div>
+                  <div class="stat-label">Subscriber</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-grid">
+              <section class="settings-section">
+                <div class="section-header">
+                  <i data-lucide="history" size="20"></i>
+                  <h3>Page Journeys</h3>
+                </div>
+                <div class="table-card">
+                  <div
+                    class="table-responsive"
+                    style="max-height: 400px; overflow-y: auto"
+                  >
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Page</th>
+                          <th>Date</th>
+                        </tr>
+                      </thead>
+                      <tbody id="user-activity-body"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+
+              <section class="settings-section">
+                <div class="section-header">
+                  <i data-lucide="message-circle" size="20"></i>
+                  <h3>All Interactions</h3>
+                </div>
+                <div
+                  id="user-interactions-container"
+                  class="table-card"
+                  style="padding: 1.25rem; max-height: 400px; overflow-y: auto"
+                >
+                  <p style="color: var(--text-muted); font-size: 0.85rem">
+                    Select a user to view detailed interactions.
+                  </p>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div
+            id="audience-empty"
+            style="padding: 5rem; text-align: center; color: var(--text-muted)"
+          >
+            <i
+              data-lucide="user-search"
+              size="48"
+              style="opacity: 0.2; margin-bottom: 1rem"
+            ></i>
+            <p>
+              Select a user from the dropdown above to analyze their activity.
+            </p>
+          </div>
+        </div>
+
         <div id="view-settings" class="hidden">
           <div class="page-header">
             <div>
               <h2 class="page-title">Settings</h2>
               <p style="color: var(--text-muted); font-size: 0.9rem">
-                Customize your admin experience and blog details.
+                Global configuration for your portfolio and blog.
               </p>
             </div>
-            <button class="btn btn-primary" onclick="saveSettings()">
-              Save Changes
+            <button
+              class="icon-btn"
+              onclick="saveSettings()"
+              title="Save Changes"
+            >
+              <i data-lucide="save" size="24" style="color: var(--accent)"></i>
             </button>
           </div>
 
-          <div
-            style="
-              display: grid;
-              grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-              gap: 1.5rem;
-            "
-          >
-            <div class="table-card" style="padding: 1.5rem">
-              <h3
-                style="
-                  font-family: var(--font-serif);
-                  font-size: 1.25rem;
-                  margin-bottom: 1.5rem;
-                  border-bottom: 1px solid var(--border);
-                  padding-bottom: 0.5rem;
-                "
-              >
-                General Info
-              </h3>
-              <div class="form-group" style="margin-bottom: 1rem">
-                <label class="form-label">Blog Title</label>
-                <input
-                  type="text"
-                  id="set-blog-title"
-                  class="form-input"
-                  placeholder="Khushaank's Blog"
-                />
+          <div class="settings-grid">
+            <section class="settings-section">
+              <div class="section-header">
+                <i data-lucide="info" size="20"></i>
+                <h3>General Identity</h3>
               </div>
-              <div class="form-group" style="margin-bottom: 1rem">
-                <label class="form-label">Author Name</label>
-                <input
-                  type="text"
-                  id="set-author-name"
-                  class="form-input"
-                  placeholder="Khushaank"
-                />
+              <div class="table-card">
+                <div class="form-group">
+                  <label class="form-label">Blog/Site Title</label>
+                  <input
+                    type="text"
+                    id="set-blog-title"
+                    class="form-input"
+                    placeholder="Khushaank's Blog"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Author Display Name</label>
+                  <input
+                    type="text"
+                    id="set-author-name"
+                    class="form-input"
+                    placeholder="Khushaank"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Site Tagline</label>
+                  <textarea
+                    id="set-tagline"
+                    class="form-input"
+                    rows="2"
+                    placeholder="Thoughts on tech and design..."
+                  ></textarea>
+                </div>
               </div>
-              <div class="form-group">
-                <label class="form-label">Tagline</label>
-                <textarea
-                  id="set-tagline"
-                  class="form-input"
-                  rows="2"
-                  placeholder="Thoughts on tech and design..."
-                ></textarea>
-              </div>
-            </div>
+            </section>
 
-            <div class="table-card" style="padding: 1.5rem">
-              <h3
-                style="
-                  font-family: var(--font-serif);
-                  font-size: 1.25rem;
-                  margin-bottom: 1.5rem;
-                  border-bottom: 1px solid var(--border);
-                  padding-bottom: 0.5rem;
-                "
-              >
-                Interface
-              </h3>
-
-              <div
-                class="form-group"
-                style="
-                  margin-bottom: 1rem;
-                  display: flex;
-                  align-items: center;
-                  justify-content: space-between;
-                "
-              >
-                <div>
-                  <label class="form-label" style="margin-bottom: 0"
-                    >Compact Table View</label
-                  >
-                  <div style="font-size: 0.8rem; color: var(--text-muted)">
-                    Show more rows per page
+            <section class="settings-section">
+              <div class="section-header">
+                <i data-lucide="share-2" size="20"></i>
+                <h3>Social Profiles</h3>
+              </div>
+              <div class="table-card">
+                <div class="form-group">
+                  <label class="form-label">LinkedIn URL</label>
+                  <div class="input-with-icon">
+                    <i data-lucide="linkedin" size="16"></i>
+                    <input
+                      type="url"
+                      id="set-social-linkedin"
+                      class="form-input"
+                      placeholder="https://linkedin.com/in/..."
+                    />
                   </div>
                 </div>
-                <input
-                  type="checkbox"
-                  id="set-compact-view"
-                  style="width: 1.2rem; height: 1.2rem"
-                />
+                <div class="form-group">
+                  <label class="form-label">GitHub URL</label>
+                  <div class="input-with-icon">
+                    <i data-lucide="github" size="16"></i>
+                    <input
+                      type="url"
+                      id="set-social-github"
+                      class="form-input"
+                      placeholder="https://github.com/..."
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Twitter / X URL</label>
+                  <div class="input-with-icon">
+                    <i data-lucide="twitter" size="16"></i>
+                    <input
+                      type="url"
+                      id="set-social-x"
+                      class="form-input"
+                      placeholder="https://x.com/..."
+                    />
+                  </div>
+                </div>
               </div>
+            </section>
 
-              <div class="form-group" style="margin-bottom: 1rem">
-                <label class="form-label">Editor Auto-save</label>
-                <select id="set-autosave" class="form-input">
-                  <option value="off">Off</option>
-                  <option value="30">Every 30 seconds</option>
-                  <option value="60">Every minute</option>
-                  <option value="300">Every 5 minutes</option>
-                </select>
+            <section class="settings-section">
+              <div class="section-header">
+                <i data-lucide="search" size="20"></i>
+                <h3>SEO Configuration</h3>
               </div>
-            </div>
+              <div class="table-card">
+                <div class="form-group">
+                  <label class="form-label">Meta Description</label>
+                  <textarea
+                    id="set-seo-desc"
+                    class="form-input"
+                    rows="3"
+                    placeholder="Site description for search engines..."
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Keywords (comma separated)</label>
+                  <input
+                    type="text"
+                    id="set-seo-keywords"
+                    class="form-input"
+                    placeholder="AI, Finance, Portfolio, Development"
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section class="settings-section">
+              <div class="section-header">
+                <i data-lucide="sliders" size="20"></i>
+                <h3>System & UI</h3>
+              </div>
+              <div class="table-card">
+                <div class="toggle-group">
+                  <div>
+                    <label class="form-label">Compact Table View</label>
+                    <p class="form-help">Optimizes space in data tables</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="set-compact-view" />
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+
+                <div class="toggle-group" style="margin-top: 1.5rem">
+                  <div>
+                    <label class="form-label">Maintenance Mode</label>
+                    <p class="form-help">
+                      Redirect visitors to a maintenance page
+                    </p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" id="set-maint-mode" />
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 1.5rem">
+                  <label class="form-label">Editor Auto-save</label>
+                  <select id="set-autosave" class="form-input">
+                    <option value="off">Off</option>
+                    <option value="30">Every 30 seconds</option>
+                    <option value="60">Every minute</option>
+                    <option value="300">Every 5 minutes</option>
+                  </select>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
       </main>
@@ -790,6 +1057,7 @@
                   onchange="handlePostFileUpload(this)"
                 />
               </div>
+              <div id="attachment-preview" style="display: none; margin-top: 0.75rem;"></div>
               <div
                 style="
                   font-size: 0.75rem;
@@ -865,6 +1133,31 @@
 
           <div style="position: relative; width: 100%; height: 280px">
             <canvas id="viewsChart"></canvas>
+          </div>
+        </div>
+      </div>
+    <div id="user-profile-modal" class="modal-overlay">
+      <div class="modal-box" style="width: 600px; max-width: 95%">
+        <div class="modal-header">
+          <h3 class="modal-title" id="user-profile-title">Visitor Profile</h3>
+          <button class="icon-btn" onclick="closeUserProfileModal()">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="user-profile-details"></div>
+          <div style="margin-top: 1.5rem">
+            <div
+              class="analytics-section-title"
+              style="margin-bottom: 0.5rem; font-size: 1rem"
+            >
+              Action History
+            </div>
+            <div
+              id="user-profile-activity"
+              class="list-group"
+              style="max-height: 400px; overflow-y: auto"
+            ></div>
           </div>
         </div>
       </div>

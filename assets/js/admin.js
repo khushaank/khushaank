@@ -172,6 +172,7 @@ window.switchView = function (viewId) {
     "dashboard",
     "blogs",
     "analytics",
+    "audience",
     "subscribers",
     "messages",
     "comments",
@@ -179,12 +180,16 @@ window.switchView = function (viewId) {
     "settings",
   ];
   views.forEach((id) => {
-    document.getElementById(`view-${id}`).classList.add("hidden");
-    document.getElementById(`nav-${id}`).classList.remove("active");
+    const view = document.getElementById(`view-${id}`);
+    const nav = document.getElementById(`nav-${id}`);
+    if (view) view.classList.add("hidden");
+    if (nav) nav.classList.remove("active");
   });
 
-  document.getElementById(`view-${viewId}`).classList.remove("hidden");
-  document.getElementById(`nav-${viewId}`).classList.add("active");
+  const activeView = document.getElementById(`view-${viewId}`);
+  const activeNav = document.getElementById(`nav-${viewId}`);
+  if (activeView) activeView.classList.remove("hidden");
+  if (activeNav) activeNav.classList.add("active");
 
   if (viewId === "dashboard") {
     allPageViews = [];
@@ -195,6 +200,9 @@ window.switchView = function (viewId) {
   }
   if (viewId === "analytics") {
     fetchAnalytics();
+  }
+  if (viewId === "audience") {
+    refreshAudienceList();
   }
   if (viewId === "subscribers") {
     fetchSubscribers();
@@ -305,10 +313,22 @@ async function fetchAnalytics() {
   const pages = {};
 
   const referrers = {};
-
   const devices = { Desktop: 0, Mobile: 0 };
+  const visitors = {};
+  window.currentVisitors = visitors; // For filtering
 
   views.forEach((v) => {
+    const tid = v.tracking_id || "Anonymous";
+    if (!visitors[tid]) {
+      visitors[tid] = {
+        lastSeen: v.created_at,
+        pages: [],
+        device: "Desktop",
+        referrer: v.referrer || "Direct",
+      };
+    }
+    visitors[tid].pages.push({ path: v.page_path, time: v.created_at });
+
     const path = v.page_path || "/";
     if (!pages[path]) {
       pages[path] = {
@@ -335,14 +355,16 @@ async function fetchAnalytics() {
 
     if (v.user_agent) {
       const ua = v.user_agent.toLowerCase();
-      if (
+      const isMobile =
         ua.includes("mobile") ||
         ua.includes("android") ||
-        ua.includes("iphone")
-      ) {
+        ua.includes("iphone");
+      if (isMobile) {
         devices.Mobile++;
+        visitors[tid].device = "Mobile";
       } else {
         devices.Desktop++;
+        visitors[tid].device = "Desktop";
       }
     } else {
       devices.Desktop++;
@@ -447,8 +469,8 @@ async function fetchAnalytics() {
                       <div class="list-item">
                           <div class="progress-bg" style="width: ${percent}%"></div>
                           <div class="list-content">
-                              <span>${ref}</span>
-                              <span style="font-weight:600">${count}</span>
+                               <span>${ref}</span>
+                               <span style="font-weight:600">${count}</span>
                           </div>
                       </div>
                       `;
@@ -465,11 +487,159 @@ async function fetchAnalytics() {
                 </div>
           </div>
       </div>
+
+      <!-- Visitor Activity Search & Recent Activity -->
+      <div style="margin-top: 2rem;">
+          <div class="analytics-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="history" size="20"></i> Recent Activity</div>
+            <div class="input-group" style="margin-bottom: 0">
+              <input
+                type="text"
+                id="search-visitor"
+                placeholder="Search Visitor ID..."
+                class="form-input"
+                style="padding: 0.4rem 0.75rem; font-size: 0.8rem; width: 180px"
+                onkeyup="filterVisitorActivity()"
+              />
+            </div>
+          </div>
+          <div class="list-group" id="visitor-activity-list">
+              ${renderVisitorActivityList(visitors)}
+          </div>
+      </div>
     `;
 
   container.innerHTML = html;
   if (typeof lucide !== "undefined") lucide.createIcons();
 }
+
+function renderVisitorActivityList(visitors, query = "") {
+  return Object.entries(visitors)
+    .filter(([tid, data]) => {
+      if (!query) return true;
+      return tid.toLowerCase().includes(query.toLowerCase());
+    })
+    .slice(0, 15)
+    .map(([tid, data]) => {
+      const lastPath = data.pages[0].path;
+      const timeStr = new Date(data.lastSeen).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      return `
+        <div class="list-item" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; cursor: pointer;" onclick="showUserProfile('${tid}')">
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+                <span style="font-weight: 700; color: var(--accent); font-family: monospace;">Visitor ${tid.substring(0, 8)}</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">${timeStr}</span>
+            </div>
+            <div style="font-size: 0.85rem;">
+                Viewing <span style="font-weight: 600;">${formatPathTitle(lastPath)}</span>
+            </div>
+            <div style="display: flex; gap: 0.75rem; font-size: 0.7rem; color: var(--text-muted);">
+                <span><i data-lucide="${data.device.toLowerCase() === "mobile" ? "smartphone" : "monitor"}" size="10" style="vertical-align: middle;"></i> ${data.device}</span>
+                <span><i data-lucide="link" size="10" style="vertical-align: middle;"></i> ${data.referrer.length > 30 ? data.referrer.substring(0, 30) + "..." : data.referrer}</span>
+            </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+window.showUserProfile = function (tid) {
+  const visitor = window.currentVisitors[tid];
+  if (!visitor) return;
+
+  const modal = document.getElementById("user-profile-modal");
+  const title = document.getElementById("user-profile-title");
+  const details = document.getElementById("user-profile-details");
+  const activity = document.getElementById("user-profile-activity");
+
+  title.innerText = `Visitor Profile: ${tid.substring(0, 8)}`;
+
+  details.innerHTML = `
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+      <div class="stat-box">
+        <div class="stat-label">Device</div>
+        <div class="stat-value" style="font-size: 1.1rem;"><i data-lucide="${visitor.device.toLowerCase() === "mobile" ? "smartphone" : "monitor"}" size="16"></i> ${visitor.device}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total Actions</div>
+        <div class="stat-value" style="font-size: 1.1rem;">${visitor.pages.length} Pages</div>
+      </div>
+    </div>
+    <div style="margin-bottom: 1rem;">
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Original Referrer</div>
+      <div style="font-size: 0.9rem; font-weight: 600; word-break: break-all;">${visitor.referrer}</div>
+    </div>
+  `;
+
+  activity.innerHTML = visitor.pages
+    .map(
+      (p) => `
+    <div style="padding: 0.75rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <div style="font-weight: 600; font-size: 0.9rem;">${formatPathTitle(p.path)}</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">${p.path}</div>
+      </div>
+      <div style="font-size: 0.75rem; color: var(--text-muted);">${new Date(p.time).toLocaleTimeString()}</div>
+    </div>
+  `,
+    )
+    .join("");
+
+  modal.classList.add("active");
+  lucide.createIcons();
+};
+
+window.closeUserProfileModal = function () {
+  document.getElementById("user-profile-modal").classList.remove("active");
+};
+
+window.filterVisitorActivity = function () {
+  const query = document.getElementById("search-visitor").value;
+  if (window.currentVisitors) {
+    const list = document.getElementById("visitor-activity-list");
+    list.innerHTML = renderVisitorActivityList(window.currentVisitors, query);
+    lucide.createIcons();
+  }
+};
+
+let allSubscribers = [];
+let allMessages = [];
+let allComments = [];
+
+window.filterSubscribers = function () {
+  const query = document
+    .getElementById("search-subscribers")
+    .value.toLowerCase();
+  const filtered = allSubscribers.filter((s) =>
+    s.email.toLowerCase().includes(query),
+  );
+  renderSubscriberTable(filtered);
+};
+
+window.filterMessages = function () {
+  const query = document.getElementById("search-messages").value.toLowerCase();
+  const filtered = allMessages.filter(
+    (m) =>
+      m.name.toLowerCase().includes(query) ||
+      m.email.toLowerCase().includes(query) ||
+      m.subject.toLowerCase().includes(query) ||
+      m.message.toLowerCase().includes(query),
+  );
+  renderMessageTable(filtered);
+};
+
+window.filterComments = function () {
+  const query = document.getElementById("search-comments").value.toLowerCase();
+  const filtered = allComments.filter(
+    (c) =>
+      c.user_name.toLowerCase().includes(query) ||
+      c.content.toLowerCase().includes(query) ||
+      (c.posts?.title || "").toLowerCase().includes(query),
+  );
+  renderCommentTable(filtered);
+};
 
 function formatPathTitle(path) {
   if (!path || path === "/" || path === "/index.html") return "Home";
@@ -762,9 +932,17 @@ function renderTable(posts) {
             <td>${new Date(post.created_at).toLocaleDateString()}</td>
             <td>${post.views || 0}</td>
             <td style="text-align: right;">
-                <button class="icon-btn" title="Stats" onclick="openStatsModal('${post.slug}', '${post.title.replace(/'/g, "\\'")}', ${post.views || 0})" style="margin-right: 0.5rem;"><i data-lucide="bar-chart-2" size="16"></i></button>
-                <button class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="editPost('${post.id}')"><i data-lucide="pencil" size="14"></i> Edit</button>
-                <button class="btn btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; margin-left: 0.5rem;" onclick="deletePost('${post.id}')"><i data-lucide="trash-2" size="14"></i></button>
+                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                  <button class="icon-btn" title="Stats" onclick="openStatsModal('${post.slug}', '${post.title.replace(/'/g, "\\'")}', ${post.views || 0})">
+                    <i data-lucide="bar-chart-2" size="18"></i>
+                  </button>
+                  <button class="icon-btn" title="Edit" onclick="editPost('${post.id}')">
+                    <i data-lucide="pencil" size="18"></i>
+                  </button>
+                  <button class="icon-btn" title="Delete" onclick="deletePost('${post.id}')" style="color: var(--danger);">
+                    <i data-lucide="trash-2" size="18"></i>
+                  </button>
+                </div>
             </td>
         `;
     tbody.appendChild(tr);
@@ -870,6 +1048,8 @@ function openModal(isEdit = false) {
     quill.root.innerHTML = "";
     imagePreview.style.display = "none";
     imagePreview.src = "";
+    document.getElementById("attachment-preview").style.display = "none";
+    document.getElementById("attachment-preview").innerHTML = "";
   }
 }
 
@@ -982,9 +1162,48 @@ async function editPost(id) {
       imagePreview.style.display = "none";
     }
 
+    if (data.file_url) {
+      updateAttachmentPreview(data.file_url);
+    }
+
+    document.getElementById("p-file").value = data.file_url || "";
     openModal(true);
   }
 }
+
+function updateAttachmentPreview(url) {
+  const container = document.getElementById("attachment-preview");
+  if (!url) {
+    container.style.display = "none";
+    return;
+  }
+
+  const fileName = url.split("/").pop();
+  const ext = fileName.split(".").pop().toLowerCase();
+
+  container.innerHTML = `
+    <div style="padding: 0.75rem; background: var(--bg-body); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; gap: 0.75rem;">
+      <div style="width: 40px; height: 40px; background: var(--accent); color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800;">
+        ${ext.toUpperCase()}
+      </div>
+      <div style="flex: 1; overflow: hidden;">
+        <div style="font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fileName}</div>
+        <div style="font-size: 0.7rem; color: var(--text-muted);">Attachment Ready</div>
+      </div>
+      <button type="button" class="icon-btn" onclick="removeAttachment()" style="color: var(--danger);">
+        <i data-lucide="x" size="14"></i>
+      </button>
+    </div>
+  `;
+  container.style.display = "block";
+  lucide.createIcons();
+}
+
+window.removeAttachment = function () {
+  document.getElementById("p-file").value = "";
+  document.getElementById("attachment-preview").style.display = "none";
+  document.getElementById("attachment-preview").innerHTML = "";
+};
 
 async function deletePost(id) {
   if (confirm("Delete this article? This cannot be undone.")) {
@@ -1002,7 +1221,14 @@ const defaultSettings = {
   blogTitle: "Khushaank's Blog",
   authorName: "Khushaank",
   tagline: "Thoughts on tech and design...",
+  socialLinkedIn: "",
+  socialGithub: "",
+  socialX: "",
+  seoDesc: "Khushaank Gupta - AI Engineer & Developer Portfolio",
+  seoKeywords:
+    "Khushaank Gupta, AI Engineer, Machine Learning, Web Developer, Portfolio",
   compactView: false,
+  maintMode: false,
   autosave: "60",
 };
 
@@ -1010,17 +1236,29 @@ function loadSettings() {
   const saved =
     JSON.parse(localStorage.getItem("adminSettings")) || defaultSettings;
 
-  if (document.getElementById("set-blog-title")) {
-    document.getElementById("set-blog-title").value =
-      saved.blogTitle || defaultSettings.blogTitle;
-    document.getElementById("set-author-name").value =
-      saved.authorName || defaultSettings.authorName;
-    document.getElementById("set-tagline").value =
-      saved.tagline || defaultSettings.tagline;
-    document.getElementById("set-compact-view").checked =
-      saved.compactView || false;
-    document.getElementById("set-autosave").value = saved.autosave || "60";
-  }
+  const fields = {
+    "set-blog-title": "blogTitle",
+    "set-author-name": "authorName",
+    "set-tagline": "tagline",
+    "set-social-linkedin": "socialLinkedIn",
+    "set-social-github": "socialGithub",
+    "set-social-x": "socialX",
+    "set-seo-desc": "seoDesc",
+    "set-seo-keywords": "seoKeywords",
+    "set-autosave": "autosave",
+  };
+
+  Object.entries(fields).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = saved[key] || defaultSettings[key] || "";
+  });
+
+  const compactEl = document.getElementById("set-compact-view");
+  if (compactEl)
+    compactEl.checked = saved.compactView ?? defaultSettings.compactView;
+
+  const maintEl = document.getElementById("set-maint-mode");
+  if (maintEl) maintEl.checked = saved.maintMode ?? defaultSettings.maintMode;
 
   applySettings(saved);
 }
@@ -1030,7 +1268,13 @@ window.saveSettings = function () {
     blogTitle: document.getElementById("set-blog-title").value,
     authorName: document.getElementById("set-author-name").value,
     tagline: document.getElementById("set-tagline").value,
+    socialLinkedIn: document.getElementById("set-social-linkedin").value,
+    socialGithub: document.getElementById("set-social-github").value,
+    socialX: document.getElementById("set-social-x").value,
+    seoDesc: document.getElementById("set-seo-desc").value,
+    seoKeywords: document.getElementById("set-seo-keywords").value,
     compactView: document.getElementById("set-compact-view").checked,
+    maintMode: document.getElementById("set-maint-mode").checked,
     autosave: document.getElementById("set-autosave").value,
   };
 
@@ -1042,11 +1286,7 @@ window.saveSettings = function () {
 function applySettings(settings) {
   const tableTable = document.getElementById("posts-table");
   if (tableTable) {
-    if (settings.compactView) {
-      tableTable.classList.add("compact-view");
-    } else {
-      tableTable.classList.remove("compact-view");
-    }
+    tableTable.classList.toggle("compact-view", settings.compactView);
   }
 }
 
@@ -1055,29 +1295,45 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function fetchSubscribers() {
-  const tbody = document.getElementById("subscribers-body");
   const totalEl = document.getElementById("total-subscribers");
+  const tbody = document.getElementById("subscribers-body");
   if (!tbody) return;
 
   tbody.innerHTML =
     '<tr><td colspan="3" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
 
-  const { data: subscribers, error } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("subscribers")
     .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {
-    // console.error("Error fetching subscribers:", error);
     tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: red;">Error: ${error.message}</td></tr>`;
     return;
   }
 
-  if (totalEl) totalEl.textContent = subscribers.length;
+  allSubscribers = data || [];
+  if (totalEl) totalEl.textContent = allSubscribers.length;
+  renderSubscribers(allSubscribers);
+}
+
+window.filterSubscribers = function () {
+  const term = document
+    .getElementById("search-subscribers")
+    .value.toLowerCase();
+  const filtered = allSubscribers.filter(
+    (s) => s.email && s.email.toLowerCase().includes(term),
+  );
+  renderSubscribers(filtered);
+};
+
+function renderSubscribers(subscribers) {
+  const tbody = document.getElementById("subscribers-body");
+  if (!tbody) return;
 
   if (subscribers.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="3" style="text-align: center; padding: 2rem;">No subscribers yet.</td></tr>';
+      '<tr><td colspan="3" style="text-align: center; padding: 2rem;">No subscribers found.</td></tr>';
     return;
   }
 
@@ -1089,12 +1345,15 @@ async function fetchSubscribers() {
         <td>${sub.email}</td>
         <td>${date}</td>
         <td style="text-align: right;">
-           <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="deleteSubscriber('${sub.id}')">Remove</button>
+           <button class="icon-btn" title="Remove Subscriber" onclick="deleteSubscriber('${sub.id}')">
+              <i data-lucide="user-minus" size="18" style="color: var(--danger);"></i>
+           </button>
         </td>
       </tr>
     `;
     })
     .join("");
+  lucide.createIcons();
 }
 
 window.deleteSubscriber = async function (id) {
@@ -1158,7 +1417,7 @@ async function fetchMessages() {
   tbody.innerHTML = "";
   if (emptyDiv) emptyDiv.style.display = "none";
 
-  const { data: messages, error } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("messages")
     .select("*")
     .order("created_at", { ascending: false });
@@ -1168,11 +1427,34 @@ async function fetchMessages() {
     return;
   }
 
+  allMessages = data || [];
+  renderMessageTable(allMessages);
+}
+
+window.filterMessages = function () {
+  const term = document.getElementById("search-messages").value.toLowerCase();
+  const filtered = allMessages.filter(
+    (m) =>
+      (m.name && m.name.toLowerCase().includes(term)) ||
+      (m.email && m.email.toLowerCase().includes(term)) ||
+      (m.subject && m.subject.toLowerCase().includes(term)) ||
+      (m.message && m.message.toLowerCase().includes(term)),
+  );
+  renderMessageTable(filtered);
+};
+
+function renderMessageTable(messages) {
+  const tbody = document.getElementById("messages-body");
+  const empty = document.getElementById("messages-empty");
+  if (!tbody) return;
+
   if (messages.length === 0) {
-    if (emptyDiv) emptyDiv.style.display = "block";
+    tbody.innerHTML = "";
+    if (empty) empty.style.display = "block";
     return;
   }
 
+  if (empty) empty.style.display = "none";
   tbody.innerHTML = messages
     .map((msg) => {
       const date = new Date(msg.created_at).toLocaleString();
@@ -1191,15 +1473,20 @@ async function fetchMessages() {
         </td>
         <td style="font-size: 0.8rem;">${date}</td>
         <td style="text-align: right;">
-          <button class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="toggleMessageRead('${msg.id}', ${msg.is_read})">
-            ${msg.is_read ? "Mark Unread" : "Mark Read"}
-          </button>
-          <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="deleteMessage('${msg.id}')">Delete</button>
+          <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button class="icon-btn" title="${msg.is_read ? "Mark Unread" : "Mark Read"}" onclick="toggleMessageRead('${msg.id}', ${msg.is_read})">
+              <i data-lucide="${msg.is_read ? "mail-open" : "mail"}" size="18"></i>
+            </button>
+            <button class="icon-btn" title="Delete" onclick="deleteMessage('${msg.id}')" style="color: var(--danger);">
+              <i data-lucide="trash-2" size="18"></i>
+            </button>
+          </div>
         </td>
       </tr>
     `;
     })
     .join("");
+  lucide.createIcons();
 }
 
 window.deleteMessage = async function (id) {
@@ -1286,27 +1573,75 @@ async function fetchFiles() {
       card.style.flexDirection = "column";
       card.style.gap = "0.75rem";
       card.style.position = "relative";
+      card.style.minHeight = "260px";
 
-      const isImage = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(file.name);
+      const ext = file.name.split(".").pop().toLowerCase();
+      const isImage = ["jpg", "jpeg", "png", "webp", "gif", "svg"].includes(
+        ext,
+      );
+      const isPdf = ext === "pdf";
+      const isDoc = ["doc", "docx"].includes(ext);
+      const isSheet = ["xls", "xlsx", "csv"].includes(ext);
+      const isArchive = ["zip", "rar", "7z", "tar"].includes(ext);
+
       const { data: urlData } = supabaseClient.storage
         .from("assets")
         .getPublicUrl(file.path);
       const publicUrl = urlData.publicUrl;
 
+      let previewIcon = "file-text";
+      let iconColor = "#cbd5e1";
+      let bgColor = "#f8fafc";
+
+      if (isPdf) {
+        previewIcon = "file-text";
+        iconColor = "#ef4444";
+        bgColor = "#fef2f2";
+      } else if (isDoc) {
+        previewIcon = "file-text";
+        iconColor = "#2563eb";
+        bgColor = "#eff6ff";
+      } else if (isSheet) {
+        previewIcon = "file-spreadsheet";
+        iconColor = "#10b981";
+        bgColor = "#f0fdf4";
+      } else if (isArchive) {
+        previewIcon = "archive";
+        iconColor = "#f59e0b";
+        bgColor = "#fffbeb";
+      }
+
       card.innerHTML = `
-        <div style="height: 140px; background: #f8fafc; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border);">
-          ${isImage ? `<img src="${publicUrl}" style="width: 100%; height: 100%; object-fit: cover;">` : `<i data-lucide="file-text" size="40" style="color: #cbd5e1"></i>`}
+        <div style="height: 140px; background: ${bgColor}; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); transition: all 0.2s; position: relative;">
+          ${
+            isImage
+              ? `<img src="${publicUrl}" style="width: 100%; height: 100%; object-fit: cover;">`
+              : `
+            <div style="text-align: center;">
+              <i data-lucide="${previewIcon}" size="40" style="color: ${iconColor}"></i>
+              <div style="font-size: 0.65rem; font-weight: 800; color: ${iconColor}; margin-top: 4px; text-transform: uppercase;">${ext}</div>
+            </div>
+          `
+          }
+          <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.4); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; backdrop-filter: blur(4px);">
+            ${ext.toUpperCase()}
+          </div>
         </div>
         <div style="overflow: hidden;">
-          <div style="font-weight: 600; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main);" title="${file.name}">${file.name}</div>
-          <div style="font-size: 0.75rem; color: var(--text-muted)">${file.metadata ? (file.metadata.size / 1024).toFixed(1) : "0"} KB</div>
+          <div style="font-weight: 700; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main);" title="${file.name}">${file.name}</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; justify-content: space-between; margin-top: 2px;">
+            <span>Size: ${file.metadata ? (file.metadata.size / 1024).toFixed(1) : "0"} KB</span>
+          </div>
         </div>
         <div style="display: flex; gap: 0.5rem; margin-top: auto;">
-          <button class="btn btn-outline" style="flex: 1; padding: 0.4rem; font-size: 0.7rem; justify-content: center;" onclick="copyToClipboard('${publicUrl}')">
-            <i data-lucide="copy" size="12"></i> Copy URL
+          <button class="icon-btn" style="flex: 1; height: 32px; font-size: 0.7rem; justify-content: center; background: var(--bg-body);" onclick="copyToClipboard('${publicUrl}')" title="Copy Direct URL">
+            <i data-lucide="link" size="14"></i> URL
           </button>
-          <button class="btn btn-danger" style="padding: 0.4rem; font-size: 0.7rem;" onclick="deleteFile('${file.path}')">
-            <i data-lucide="trash-2" size="12"></i>
+          <a href="${publicUrl}" target="_blank" class="icon-btn" style="flex: 1; height: 32px; font-size: 0.7rem; justify-content: center; background: var(--bg-body); border: 1px solid var(--border);" title="Open File">
+            <i data-lucide="external-link" size="14"></i> Open
+          </a>
+          <button class="icon-btn" style="width: 32px; height: 32px; color: var(--danger); background: #fef2f2;" onclick="deleteFile('${file.path}')" title="Delete Permanent">
+            <i data-lucide="trash-2" size="14"></i>
           </button>
         </div>
       `;
@@ -1372,6 +1707,7 @@ window.handlePostFileUpload = async function (input) {
       .from("assets")
       .getPublicUrl(fileName);
     document.getElementById("p-file").value = urlData.publicUrl;
+    updateAttachmentPreview(urlData.publicUrl);
     showToast("Attachment uploaded!");
   }
   input.value = "";
@@ -1385,7 +1721,7 @@ async function fetchComments() {
   tbody.innerHTML = "";
   if (emptyDiv) emptyDiv.style.display = "none";
 
-  const { data: comments, error } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("comments")
     .select("*, posts(title)")
     .order("created_at", { ascending: false });
@@ -1395,11 +1731,33 @@ async function fetchComments() {
     return;
   }
 
+  allComments = data || [];
+  renderCommentTable(allComments);
+}
+
+window.filterComments = function () {
+  const term = document.getElementById("search-comments").value.toLowerCase();
+  const filtered = allComments.filter(
+    (c) =>
+      (c.user_name && c.user_name.toLowerCase().includes(term)) ||
+      (c.content && c.content.toLowerCase().includes(term)) ||
+      (c.posts && c.posts.title && c.posts.title.toLowerCase().includes(term)),
+  );
+  renderCommentTable(filtered);
+};
+
+window.renderCommentTable = function (comments) {
+  const tbody = document.getElementById("comments-body");
+  const empty = document.getElementById("comments-empty");
+  if (!tbody) return;
+
   if (comments.length === 0) {
-    if (emptyDiv) emptyDiv.style.display = "block";
+    tbody.innerHTML = "";
+    if (empty) empty.style.display = "block";
     return;
   }
 
+  if (empty) empty.style.display = "none";
   tbody.innerHTML = comments
     .map((comment) => {
       const date = new Date(comment.created_at).toLocaleString();
@@ -1421,13 +1779,16 @@ async function fetchComments() {
         </td>
         <td style="font-size: 0.8rem;">${date}</td>
         <td style="text-align: right;">
-          <button class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="deleteComment('${comment.id}')">Delete</button>
+          <button class="icon-btn" title="Delete Comment" onclick="deleteComment('${comment.id}')" style="color: var(--danger);">
+            <i data-lucide="trash-2" size="18"></i>
+          </button>
         </td>
       </tr>
     `;
     })
     .join("");
-}
+  lucide.createIcons();
+};
 
 window.deleteComment = async function (id) {
   if (confirm("Are you sure you want to delete this comment?")) {
@@ -1440,6 +1801,208 @@ window.deleteComment = async function (id) {
       showToast("Comment deleted.");
       fetchComments();
     }
+  }
+};
+
+// --- Audience / Intelligence Logic ---
+let allAudienceUsers = [];
+
+window.refreshAudienceList = async function () {
+  const dl = document.getElementById("user-datalist");
+  if (!dl) return;
+
+  try {
+    const [subs, msgs, comms] = await Promise.all([
+      supabaseClient.from("subscribers").select("email, created_at"),
+      supabaseClient.from("messages").select("email, name, created_at"),
+      supabaseClient.from("comments").select("user_name, created_at"),
+    ]);
+
+    const userMap = new Map();
+
+    (subs.data || []).forEach((s) => {
+      if (s.email) {
+        const email = s.email.toLowerCase();
+        userMap.set(email, { email: s.email, name: "", type: "Subscriber" });
+      }
+    });
+
+    (msgs.data || []).forEach((m) => {
+      if (m.email) {
+        const email = m.email.toLowerCase();
+        const existing = userMap.get(email);
+        userMap.set(email, {
+          email: m.email,
+          name: m.name || (existing ? existing.name : ""),
+          type: existing ? "Subscriber + Lead" : "Lead",
+        });
+      }
+    });
+
+    (comms.data || []).forEach((c) => {
+      const emailMatch = c.user_name && c.user_name.includes("@");
+      if (emailMatch) {
+        const email = c.user_name.toLowerCase();
+        const existing = userMap.get(email);
+        userMap.set(email, {
+          email: c.user_name,
+          name: existing ? existing.name : "",
+          type: existing ? existing.type + ", Commenter" : "Commenter",
+        });
+      }
+    });
+
+    dl.innerHTML = "";
+    allAudienceUsers = Array.from(userMap.values()).sort((a, b) =>
+      a.email.localeCompare(b.email),
+    );
+
+    allAudienceUsers.forEach((u) => {
+      const opt = document.createElement("option");
+      opt.value = u.email;
+      opt.textContent = `${u.name ? `${u.name} ` : ""}(${u.type})`;
+      dl.appendChild(opt);
+    });
+
+    if (typeof lucide !== "undefined") lucide.createIcons();
+  } catch (err) {
+    console.warn("Audience fetch error:", err);
+    showToast("Error loading user records", "error");
+  }
+};
+
+window.loadUserActivity = async function (email) {
+  if (!email) {
+    document.getElementById("user-profile-data").style.display = "none";
+    document.getElementById("audience-empty").style.display = "block";
+    return;
+  }
+
+  const profileData = document.getElementById("user-profile-data");
+  const emptyState = document.getElementById("audience-empty");
+  if (profileData) profileData.style.display = "block";
+  if (emptyState) emptyState.style.display = "none";
+
+  // Reset UI
+  document.getElementById("user-stat-views").textContent = "...";
+  document.getElementById("user-stat-comments").textContent = "...";
+  document.getElementById("user-stat-messages").textContent = "...";
+  document.getElementById("user-stat-subscriber").textContent = "...";
+
+  const activityBody = document.getElementById("user-activity-body");
+  const interactionContainer = document.getElementById(
+    "user-interactions-container",
+  );
+  if (activityBody)
+    activityBody.innerHTML = '<tr><td colspan="2">Analyzing...</td></tr>';
+  if (interactionContainer)
+    interactionContainer.innerHTML = "<p>Processing logs...</p>";
+
+  try {
+    const [subRes, msgRes, commRes, viewsRes] = await Promise.all([
+      supabaseClient.from("subscribers").select("*").eq("email", email),
+      supabaseClient
+        .from("messages")
+        .select("*")
+        .eq("email", email)
+        .order("created_at", { ascending: false }),
+      supabaseClient
+        .from("comments")
+        .select("*, posts(title)")
+        .eq("user_name", email)
+        .order("created_at", { ascending: false }),
+      supabaseClient
+        .from("page_views")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1000),
+    ]);
+
+    const isSub = subRes.data && subRes.data.length > 0;
+    const messages = msgRes.data || [];
+    const comments = commRes.data || [];
+
+    let userViews = [];
+    const knownTrackingIds = new Set();
+
+    messages.forEach((m) => {
+      if (m.tracking_id) knownTrackingIds.add(m.tracking_id);
+    });
+    if (isSub && subRes.data[0].tracking_id)
+      knownTrackingIds.add(subRes.data[0].tracking_id);
+
+    if (knownTrackingIds.size > 0) {
+      userViews = (viewsRes.data || []).filter((v) =>
+        knownTrackingIds.has(v.tracking_id),
+      );
+    }
+
+    document.getElementById("user-stat-subscriber").textContent = isSub
+      ? "Yes"
+      : "No";
+    document.getElementById("user-stat-messages").textContent = messages.length;
+    document.getElementById("user-stat-comments").textContent = comments.length;
+    document.getElementById("user-stat-views").textContent = userViews.length;
+
+    if (activityBody) {
+      if (userViews.length === 0) {
+        activityBody.innerHTML =
+          '<tr><td colspan="2" style="text-align:center; padding: 2rem; color: var(--text-muted);">No journey logs linked to this email yet. New interactions will be tracked automatically.</td></tr>';
+      } else {
+        activityBody.innerHTML = userViews
+          .map(
+            (v) => `
+          <tr>
+            <td style="font-weight: 500">${v.page_path}</td>
+            <td style="font-size: 0.8rem; color: var(--text-muted)">${new Date(v.created_at).toLocaleString()}</td>
+          </tr>
+        `,
+          )
+          .join("");
+      }
+    }
+
+    if (interactionContainer) {
+      let html = "";
+      if (isSub) {
+        html += `
+          <div style="background: #f0fdf4; border: 1px solid #dcfce7; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.75rem;">
+            <div style="font-weight: 600; font-size: 0.85rem; color: #15803d; display: flex; align-items: center; gap: 0.5rem">
+              <i data-lucide="check-circle" size="14"></i> Newsletter Subscribed
+            </div>
+            <div style="font-size: 0.75rem; color: #15803d; opacity: 0.8">${new Date(subRes.data[0].created_at).toLocaleString()}</div>
+          </div>
+        `;
+      }
+
+      messages.forEach((m) => {
+        html += `
+          <div style="background: #eff6ff; border: 1px solid #dbeafe; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.75rem;">
+            <div style="font-weight: 600; font-size: 0.85rem; color: #1d4ed8;">Message: ${m.subject}</div>
+            <p style="font-size: 0.8rem; margin: 0.35rem 0; color: #1e3a8a;">${m.message}</p>
+            <div style="font-size: 0.75rem; color: #1d4ed8; opacity: 0.7">${new Date(m.created_at).toLocaleString()}</div>
+          </div>
+        `;
+      });
+
+      comments.forEach((c) => {
+        html += `
+          <div style="background: #fffbeb; border: 1px solid #fef3c7; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.75rem;">
+            <div style="font-weight: 600; font-size: 0.85rem; color: #b45309;">Comment: ${c.posts?.title || "Article"}</div>
+            <p style="font-size: 0.8rem; margin: 0.35rem 0; color: #92400e;">${c.content}</p>
+            <div style="font-size: 0.75rem; color: #b45309; opacity: 0.7">${new Date(c.created_at).toLocaleString()}</div>
+          </div>
+        `;
+      });
+
+      interactionContainer.innerHTML =
+        html ||
+        '<p style="color: var(--text-muted); font-size: 0.85rem;">No direct interactions recorded.</p>';
+      if (typeof lucide !== "undefined") lucide.createIcons();
+    }
+  } catch (err) {
+    console.warn("Load user activity error:", err);
+    showToast("Error analyzing profile", "error");
   }
 };
 
@@ -1500,5 +2063,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (overlay) overlay.classList.remove("active");
       }
     });
+  });
+
+  // Hide preloader
+  window.addEventListener("load", () => {
+    const preloader = document.querySelector(".preloader");
+    if (preloader) {
+      preloader.style.opacity = "0";
+      setTimeout(() => {
+        preloader.style.display = "none";
+      }, 500);
+    }
   });
 });
