@@ -1902,29 +1902,90 @@ function setupCommentImageUploader() {
   const previewContainer = document.getElementById("comment-image-preview");
   const previewImg = document.getElementById("preview-img");
   const removeBtn = document.getElementById("remove-image-btn");
+  const popover = document.getElementById("attach-popover");
+  const dropZone = document.getElementById("attach-drop-zone");
+  const fromComputerBtn = document.getElementById("attach-from-computer");
+  const fromDriveBtn = document.getElementById("attach-from-drive");
 
   if (!addBtn || !fileInput) return;
 
-  addBtn.addEventListener("click", () => {
-    fileInput.click();
+  function handleFile(file) {
+    if (!file || !file.type.startsWith("image/")) return;
+    const url = URL.createObjectURL(file);
+    if (previewImg) previewImg.src = url;
+    if (previewContainer) previewContainer.style.display = "inline-block";
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+    if (popover) popover.classList.remove("active");
+  }
+
+  addBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (popover) popover.classList.toggle("active");
   });
+
+  document.addEventListener("click", (e) => {
+    if (
+      popover &&
+      !popover.contains(e.target) &&
+      e.target !== addBtn &&
+      !addBtn.contains(e.target)
+    ) {
+      popover.classList.remove("active");
+    }
+  });
+
+  if (fromComputerBtn) {
+    fromComputerBtn.addEventListener("click", () => {
+      fileInput.click();
+    });
+  }
 
   fileInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      previewImg.src = url;
-      previewContainer.style.display = "inline-block";
-    } else {
+      handleFile(file);
+    } else if (previewContainer) {
       previewContainer.style.display = "none";
     }
   });
 
-  removeBtn.addEventListener("click", () => {
-    fileInput.value = "";
-    previewImg.src = "";
-    previewContainer.style.display = "none";
-  });
+  if (dropZone) {
+    ["dragenter", "dragover"].forEach((evt) => {
+      dropZone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add("drag-over");
+      });
+    });
+    ["dragleave", "drop"].forEach((evt) => {
+      dropZone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove("drag-over");
+      });
+    });
+    dropZone.addEventListener("drop", (e) => {
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+  }
+
+  if (fromDriveBtn) {
+    fromDriveBtn.addEventListener("click", () => {
+      fileInput.click();
+      if (popover) popover.classList.remove("active");
+    });
+  }
+
+  if (removeBtn) {
+    removeBtn.addEventListener("click", () => {
+      if (previewImg) previewImg.src = "";
+      if (previewContainer) previewContainer.style.display = "none";
+      fileInput.value = "";
+    });
+  }
 }
 
 async function initArticleNavigation(currentPost) {

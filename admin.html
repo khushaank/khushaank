@@ -819,185 +819,19 @@
           <div class="settings-grid">
             <section class="settings-section">
               <div class="section-header">
-                <i data-lucide="info" size="20"></i>
-                <h3>General Identity</h3>
-              </div>
-              <div class="table-card">
-                <div class="form-group">
-                  <label class="form-label">Blog/Site Title</label>
-                  <input
-                    type="text"
-                    id="set-blog-title"
-                    class="form-input"
-                    placeholder="Khushaank's Blog"
-                  />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Author Display Name</label>
-                  <input
-                    type="text"
-                    id="set-author-name"
-                    class="form-input"
-                    placeholder="Khushaank"
-                  />
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Site Tagline</label>
-                  <textarea
-                    id="set-tagline"
-                    class="form-input"
-                    rows="2"
-                    placeholder="Thoughts on tech and design..."
-                  ></textarea>
-                </div>
-              </div>
-            </section>
-
-            <section class="settings-section">
-              <div class="section-header">
-                <i data-lucide="share-2" size="20"></i>
-                <h3>Social Profiles</h3>
-              </div>
-              <div class="table-card">
-                <div class="form-group">
-                  <label class="form-label">LinkedIn URL</label>
-                  <div class="input-with-icon">
-                    <i data-lucide="linkedin" size="16"></i>
-                    <input
-                      type="url"
-                      id="set-social-linkedin"
-                      class="form-input"
-                      placeholder="https://linkedin.com/in/..."
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">GitHub URL</label>
-                  <div class="input-with-icon">
-                    <i data-lucide="github" size="16"></i>
-                    <input
-                      type="url"
-                      id="set-social-github"
-                      class="form-input"
-                      placeholder="https://github.com/..."
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Twitter / X URL</label>
-                  <div class="input-with-icon">
-                    <i data-lucide="twitter" size="16"></i>
-                    <input
-                      type="url"
-                      id="set-social-x"
-                      class="form-input"
-                      placeholder="https://x.com/..."
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section class="settings-section">
-              <div class="section-header">
-                <i data-lucide="search" size="20"></i>
-                <h3>SEO Configuration</h3>
-              </div>
-              <div class="table-card">
-                <div class="form-group">
-                  <label class="form-label">Meta Description</label>
-                  <textarea
-                    id="set-seo-desc"
-                    class="form-input"
-                    rows="3"
-                    placeholder="Site description for search engines..."
-                  ></textarea>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Keywords (comma separated)</label>
-                  <input
-                    type="text"
-                    id="set-seo-keywords"
-                    class="form-input"
-                    placeholder="AI, Finance, Portfolio, Development"
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section class="settings-section">
-              <div class="section-header">
                 <i data-lucide="sliders" size="20"></i>
-                <h3>System & UI</h3>
+                <h3>System Preferences</h3>
               </div>
               <div class="table-card">
                 <div class="toggle-group">
                   <div>
-                    <label class="form-label">Compact Table View</label>
-                    <p class="form-help">Optimizes space in data tables</p>
-                  </div>
-                  <label class="switch">
-                    <input type="checkbox" id="set-compact-view" />
-                    <span class="slider round"></span>
-                  </label>
-                </div>
-
-                <div class="toggle-group" style="margin-top: 1.5rem">
-                  <div>
                     <label class="form-label">Maintenance Mode</label>
                     <p class="form-help">
-                      Redirect visitors to a maintenance page
+                      Temporarily redirect visitors to a maintenance page
                     </p>
                   </div>
                   <label class="switch">
                     <input type="checkbox" id="set-maint-mode" />
-                    <span class="slider round"></span>
-                  </label>
-                </div>
-
-                <div class="form-group" style="margin-top: 1.5rem">
-                  <label class="form-label">Editor Auto-save</label>
-                  <select id="set-autosave" class="form-input">
-                    <option value="off">Off</option>
-                    <option value="30">Every 30 seconds</option>
-                    <option value="60">Every minute</option>
-                    <option value="300">Every 5 minutes</option>
-                  </select>
-                </div>
-              </div>
-            </section>
-
-            <section class="settings-section">
-              <div class="section-header">
-                <i data-lucide="shield-check" size="20"></i>
-                <h3>System Security</h3>
-              </div>
-              <div class="table-card" style="padding: 1.5rem">
-                <div class="toggle-group">
-                  <div>
-                    <h4 style="font-size: 0.95rem; margin-bottom: 2px">
-                      Secure Session Watchdog
-                    </h4>
-                    <p class="form-help">
-                      Automatically monitor session validity and log out if expired.
-                    </p>
-                  </div>
-                  <label class="switch">
-                    <input type="checkbox" id="set-watchdog" checked />
-                    <span class="slider round"></span>
-                  </label>
-                </div>
-                <div class="toggle-group" style="margin-top: 1.5rem">
-                  <div>
-                    <h4 style="font-size: 0.95rem; margin-bottom: 2px">
-                      Auto Logout on Idle
-                    </h4>
-                    <p class="form-help">
-                      Sign out after 15 minutes of inactivity.
-                    </p>
-                  </div>
-                  <label class="switch">
-                    <input type="checkbox" id="set-idle-logout" checked />
                     <span class="slider round"></span>
                   </label>
                 </div>
@@ -1009,7 +843,7 @@
     </div>
 
     <div id="post-modal" class="modal-overlay">
-      <div class="modal-box zoom-in" style="width: 800px; max-width: 95%">
+      <div class="modal-box zoom-in modal-lg">
         <div class="modal-header">
           <h3
             id="modal-title"
@@ -1175,7 +1009,7 @@
         </div>
       </div>
     <div id="user-profile-modal" class="modal-overlay">
-      <div class="modal-box" style="width: 600px; max-width: 95%">
+      <div class="modal-box modal-md">
         <div class="modal-header">
           <h3 class="modal-title" id="user-profile-title">Visitor Profile</h3>
           <button class="icon-btn" onclick="closeUserProfileModal()">

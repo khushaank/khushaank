@@ -183,13 +183,21 @@ window.switchView = function (viewId) {
   views.forEach((id) => {
     const view = document.getElementById(`view-${id}`);
     const nav = document.getElementById(`nav-${id}`);
-    if (view) view.classList.add("hidden");
+    if (view) {
+      view.classList.add("hidden");
+      view.classList.remove("view-section");
+    }
     if (nav) nav.classList.remove("active");
   });
 
   const activeView = document.getElementById(`view-${viewId}`);
   const activeNav = document.getElementById(`nav-${viewId}`);
-  if (activeView) activeView.classList.remove("hidden");
+  if (activeView) {
+    activeView.classList.remove("hidden");
+    // Force reflow
+    void activeView.offsetWidth;
+    activeView.classList.add("view-section");
+  }
   if (activeNav) activeNav.classList.add("active");
 
   // Reset/Clear specific views
@@ -1628,7 +1636,9 @@ async function fetchFiles() {
           ${
             isImage
               ? `<img src="${publicUrl}" style="width: 100%; height: 100%; object-fit: cover;">`
-              : `
+              : isPdf
+                ? `<iframe src="${publicUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH" style="width: 100%; height: 100%; border: none; pointer-events: none;" scrolling="no" tabindex="-1"></iframe>`
+                : `
             <div style="text-align: center;">
               <i data-lucide="${previewIcon}" size="40" style="color: ${iconColor}"></i>
               <div style="font-size: 0.65rem; font-weight: 800; color: ${iconColor}; margin-top: 4px; text-transform: uppercase;">${ext}</div>
@@ -2123,4 +2133,16 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   );
   resetIdleTimer();
+
+  // Settings Logic Initializer
+  const maintToggle = document.getElementById("set-maint-mode");
+  if (maintToggle) {
+    maintToggle.checked = localStorage.getItem("maintenanceMode") === "true";
+  }
 });
+
+window.saveSettings = function () {
+  const maintMode = document.getElementById("set-maint-mode").checked;
+  localStorage.setItem("maintenanceMode", maintMode);
+  showToast("Settings saved successfully");
+};
