@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Khushaank Gupta — AI Prompt Pack + Verification Checklist (Finance Students)</title>
+  <meta name="description" content="Ready-to-use finance prompts + a printable verification checklist. Built for CA/finance students to get accurate, auditable AI outputs." />
+  <meta name="theme-color" content="#ffffff" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="AI Prompt Pack + Verification Checklist (Finance Students)" />
+  <meta property="og:description" content="Ready-to-use finance prompts + a printable verification checklist. Built by Khushaank Gupta." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="cover.png" />
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --panel:#f8fafc;
+      --text:#0f172a;
+      --muted:#475569;
+      --muted2:#64748b;
+      --line:#e2e8f0;
+      --brand:#2563eb;
+      --brand2:#1d4ed8;
+      --shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+      --radius: 18px;
+      --max: 1120px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(37,99,235,0.10), transparent 60%),
+        radial-gradient(900px 500px at 90% 10%, rgba(37,99,235,0.08), transparent 55%),
+        var(--bg);
+      line-height:1.5;
+    }
+
+    a{color:inherit}
+    .container{max-width:var(--max); margin:0 auto; padding:0 20px;}
+    .nav{
+      position:sticky; top:0; z-index:50;
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(226,232,240,0.8);
+    }
+    .nav-inner{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 0;
+      gap:14px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; text-decoration:none;
+      font-weight:800; letter-spacing:-0.02em;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px; background:var(--brand);
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
+    }
+    .nav-links{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
+    .nav-links a{
+      text-decoration:none;
+      color:var(--muted);
+      font-weight:600;
+      font-size:14px;
+      padding:8px 10px;
+      border-radius:999px;
+    }
+    .nav-links a:hover{background:#f1f5f9; color:var(--text)}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:10px;
+      padding:12px 16px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      font-weight:700;
+      text-decoration:none;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+      box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
+      white-space:nowrap;
+    }
+    .btn:hover{transform: translateY(-1px); box-shadow: 0 10px 26px rgba(2,6,23,0.10)}
+    .btn.primary{
+      background: linear-gradient(180deg, rgba(37,99,235,1), rgba(29,78,216,1));
+      border-color: rgba(29,78,216,0.5);
+      color:#fff;
+    }
+    .btn.primary:hover{background: linear-gradient(180deg, rgba(29,78,216,1), rgba(29,78,216,1));}
+    .btn.ghost{
+      background: rgba(255,255,255,0.65);
+    }
+
+    /* Hero */
+    .hero{padding:44px 0 10px;}
+    .hero-grid{
+      display:grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap:26px;
+      align-items:center;
+    }
+    .kicker{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:8px 12px; border:1px solid var(--line);
+      background: rgba(248,250,252,0.9);
+      border-radius:999px;
+      color:var(--muted);
+      font-weight:700;
+      font-size:13px;
+      width:max-content;
+    }
+    h1{
+      margin:14px 0 10px;
+      font-size: clamp(34px, 4.3vw, 52px);
+      line-height:1.05;
+      letter-spacing:-0.04em;
+    }
+    .sub{
+      color:var(--muted);
+      font-size: clamp(16px, 1.6vw, 18px);
+      margin: 10px 0 18px;
+      max-width: 60ch;
+    }
+    .hero-actions{display:flex; gap:12px; flex-wrap:wrap; margin: 16px 0 10px;}
+    .meta{
+      display:flex; gap:18px; flex-wrap:wrap;
+      color:var(--muted2);
+      font-weight:600;
+      margin-top:12px;
+      font-size:14px;
+    }
+    .meta span{display:inline-flex; align-items:center; gap:8px}
+    .chip{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.7);
+      font-size:12px;
+      font-weight:800;
+      color:var(--muted);
+    }
+
+    .preview{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.65);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .preview img{
+      width:100%;
+      display:block;
+      height:auto;
+    }
+    .preview::after{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(700px 240px at 50% 0%, rgba(37,99,235,0.10), transparent 60%);
+      pointer-events:none;
+    }
+
+    /* Sections */
+    section{padding:56px 0;}
+    .section-title{
+      font-size: clamp(22px, 2.2vw, 30px);
+      letter-spacing:-0.03em;
+      margin:0 0 10px;
+    }
+    .section-sub{
+      color:var(--muted);
+      margin: 0 0 26px;
+      max-width: 70ch;
+    }
+
+    .grid-3{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:16px;
+    }
+    .card{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(2,6,23,0.05);
+      padding:18px;
+    }
+    .card h3{
+      margin:0 0 8px;
+      font-size:16px;
+      letter-spacing:-0.02em;
+    }
+    .card p{margin:0; color:var(--muted); font-size:14.5px}
+    .icon{
+      width:42px; height:42px;
+      border-radius:14px;
+      display:grid; place-items:center;
+      background: rgba(37,99,235,0.10);
+      border:1px solid rgba(37,99,235,0.18);
+      margin-bottom:12px;
+      font-weight:900;
+      color:var(--brand2);
+    }
+
+    .two-col{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:16px;
+      align-items:start;
+    }
+    .list{
+      margin:0; padding:0; list-style:none;
+      display:grid; gap:10px;
+    }
+    .list li{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:12px 12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background: rgba(248,250,252,0.85);
+      color:var(--muted);
+      font-weight:600;
+    }
+    .tick{
+      width:18px; height:18px; border-radius:6px;
+      border:2px solid rgba(37,99,235,0.35);
+      background: rgba(37,99,235,0.10);
+      margin-top:1px;
+      flex: 0 0 auto;
+    }
+
+    .cta{
+      border:1px solid rgba(37,99,235,0.20);
+      background: radial-gradient(900px 320px at 10% 0%, rgba(37,99,235,0.14), transparent 60%),
+                  rgba(255,255,255,0.78);
+      border-radius: calc(var(--radius) + 6px);
+      box-shadow: var(--shadow);
+      padding:22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    .cta strong{font-size:18px; letter-spacing:-0.02em}
+    .cta p{margin:6px 0 0; color:var(--muted)}
+    .cta-actions{display:flex; gap:12px; flex-wrap:wrap}
+
+    .faq{
+      display:grid; gap:12px;
+    }
+    details{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+      border-radius: var(--radius);
+      padding:14px 16px;
+      box-shadow: 0 8px 18px rgba(2,6,23,0.04);
+    }
+    summary{
+      cursor:pointer;
+      font-weight:800;
+      letter-spacing:-0.02em;
+    }
+    details p{color:var(--muted); margin:10px 0 0}
+
+    footer{
+      padding:30px 0 44px;
+      color:var(--muted2);
+      border-top:1px solid rgba(226,232,240,0.8);
+      background: rgba(255,255,255,0.6);
+    }
+    .footer-inner{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    .fine{font-size:13px; max-width:70ch}
+
+    /* Responsive */
+    @media (max-width: 900px){
+      .hero-grid{grid-template-columns: 1fr; gap:16px}
+      .grid-3{grid-template-columns: 1fr}
+      .two-col{grid-template-columns: 1fr}
+      .nav-links{display:none}
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .btn{transition:none}
+      .btn:hover{transform:none}
+    }
+  </style>
+</head>
+
+<body>
+  <header class="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a class="brand" href="#top" aria-label="Home">
+          <span class="dot"></span>
+          <span>Khushaank Gupta</span>
+          <span class="chip">Finance + AI</span>
+        </a>
+
+        <nav class="nav-links" aria-label="Primary navigation">
+          <a href="#inside">What’s inside</a>
+          <a href="#how">How it works</a>
+          <a href="#download">Download</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+
+        <a class="btn primary" href="#download">Get the PDFs</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-grid">
+          <div>
+            <div class="kicker">
+              <span class="dot" style="width:8px;height:8px;box-shadow:none"></span>
+              <span>AI Prompt Pack + Verification Checklist</span>
+              <span class="chip">for Finance Students</span>
+            </div>
+
+            <h1>Make AI outputs<br/>finance-grade.</h1>
+
+            <p class="sub">
+              Ready-to-use prompts for financial analysis, tax, audit, accounting, and modeling —
+              plus a clean verification checklist so your output is actually <b>auditable</b>.
+            </p>
+
+            <div class="hero-actions">
+              <a class="btn primary" href="#download">Download toolkit</a>
+              <a class="btn ghost" href="#how">See how it works</a>
+            </div>
+
+            <div class="meta">
+              <span>✅ Built for CA / finance workflows</span>
+              <span>🧾 Checklist-driven verification</span>
+              <span>📄 Printable + shareable</span>
+            </div>
+          </div>
+
+          <div class="preview" aria-label="Cover preview">
+            <img src="cover.png" alt="AI Prompt Pack + Verification Checklist cover" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUST / VALUE -->
+    <section>
+      <div class="container">
+        <h2 class="section-title">Why this exists</h2>
+        <p class="section-sub">
+          Finance isn’t “vibes”. It’s units, tie-outs, standards, and clean assumptions.
+          This toolkit helps you get speed from AI without losing accuracy.
+        </p>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="icon">⚡</div>
+            <h3>Faster work, same rigor</h3>
+            <p>Use prompts that force formulas, substitutions, and structured outputs—so it’s easy to verify.</p>
+          </div>
+          <div class="card">
+            <div class="icon">🧠</div>
+            <h3>Less guesswork</h3>
+            <p>Prompts are built with placeholders, frameworks (Ind AS/IFRS/GAAP), and clear context requirements.</p>
+          </div>
+          <div class="card">
+            <div class="icon">✅</div>
+            <h3>Verification built-in</h3>
+            <p>Run the checklist: sanity → evidence → math → tie-outs → assumptions → compliance → final rating.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHAT'S INSIDE -->
+    <section id="inside">
+      <div class="container">
+        <h2 class="section-title">What’s inside</h2>
+        <p class="section-sub">
+          Two PDFs: the Prompt Pack (your “do-the-work” prompts) + the Verification Checklist (your “trust-but-verify” sheet).
+        </p>
+
+        <div class="two-col">
+          <div class="card">
+            <h3>📌 Prompt Pack topics</h3>
+            <ul class="list">
+              <li><span class="tick"></span>Financial statement analysis (ratios, working capital, tie-outs)</li>
+              <li><span class="tick"></span>Tax & compliance (tax computation, depreciation)</li>
+              <li><span class="tick"></span>Valuation & modeling (DCF setup, WACC)</li>
+              <li><span class="tick"></span>Audit & controls (substantive procedures, reconciliation review)</li>
+              <li><span class="tick"></span>Accounting entries (complex transactions, year-end adjustments)</li>
+              <li><span class="tick"></span>Budgeting & variance analysis</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>🧾 Verification Checklist sections</h3>
+            <ul class="list">
+              <li><span class="tick"></span>Input sanity (company/period/units/objective/framework)</li>
+              <li><span class="tick"></span>Evidence check (sources, no invented citations, dated market data)</li>
+              <li><span class="tick"></span>Math check (recalc 3 critical numbers, rounding consistency)</li>
+              <li><span class="tick"></span>Tie-outs (BS balances, cash flow ties, debits = credits)</li>
+              <li><span class="tick"></span>Assumptions (explicit + consistent + sensitivity)</li>
+              <li><span class="tick"></span>Final rating: Green / Yellow / Red</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how">
+      <div class="container">
+        <h2 class="section-title">How it works (simple)</h2>
+        <p class="section-sub">A workflow you can repeat every time, whether it’s class, internship, or client-style practice.</p>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="icon">1</div>
+            <h3>Pick a prompt</h3>
+            <p>Choose the task prompt and fill placeholders with your actual numbers + period + framework.</p>
+          </div>
+          <div class="card">
+            <div class="icon">2</div>
+            <h3>Get AI output</h3>
+            <p>Force structured output (tables, formulas, substitutions). Ask it to cite standards/sections.</p>
+          </div>
+          <div class="card">
+            <div class="icon">3</div>
+            <h3>Verify + rate</h3>
+            <p>Run the checklist. Fix errors. Then label the output: Green / Yellow / Red.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOWNLOAD CTA -->
+    <section id="download">
+      <div class="container">
+        <div class="cta">
+          <div>
+            <strong>Download the toolkit</strong>
+            <p>Tip: Host these PDFs alongside this page (or attach them to your LinkedIn Project).</p>
+          </div>
+          <div class="cta-actions">
+            <a class="btn primary" href="AI_Prompt_Pack.pdf" download>Download Prompt Pack</a>
+            <a class="btn" href="AI_Verification_Checklist.pdf" download>Download Checklist</a>
+          </div>
+        </div>
+
+        <div style="height:14px"></div>
+
+        <div class="card">
+          <h3>Want this to look extra premium?</h3>
+          <p>
+            Add a tiny “Free download” tag, a LinkedIn button, and a one-line credibility note
+            (ex: “CA Intermediate • Finance + Excel • Building AI workflows for students”).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="container">
+        <h2 class="section-title">FAQ</h2>
+        <p class="section-sub">Quick answers for anyone who lands here from LinkedIn.</p>
+
+        <div class="faq">
+          <details>
+            <summary>Is this beginner-friendly?</summary>
+            <p>Yes. It’s built with placeholders and clear instructions—so you can start with foundation-level knowledge and still produce clean work.</p>
+          </details>
+
+          <details>
+            <summary>Which AI tools does this work with?</summary>
+            <p>Any: ChatGPT, Claude, Gemini, etc. The prompts are written to be tool-agnostic—focus is on inputs + verification.</p>
+          </details>
+
+          <details>
+            <summary>Can I use this for internship / articleship work?</summary>
+            <p>Use it for learning and drafting, but verify everything. Never share confidential client data in AI tools.</p>
+          </details>
+
+          <details>
+            <summary>How do I share this on LinkedIn?</summary>
+            <p>Create a LinkedIn “Project”, attach the PDFs, and link this page. Pin it in Featured. Keep the post short and practical.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <div style="font-weight:900; letter-spacing:-0.02em;">Khushaank Gupta</div>
+          <div class="fine">AI for Finance Students • Prompts • Excel workflows • Verification-first.</div>
+        </div>
+        <div class="fine">
+          © <span id="year"></span> • Built with a light theme because finance docs deserve clean design.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Small niceties: year + smooth anchor scrolling
+    document.getElementById("year").textContent = new Date().getFullYear();
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener("click", (e) => {
+        const id = a.getAttribute("href");
+        const el = document.querySelector(id);
+        if(!el) return;
+        e.preventDefault();
+        el.scrollIntoView({behavior: "smooth", block: "start"});
+        history.replaceState(null, "", id);
+      });
+    });
+  </script>
+</body>
+</html>
