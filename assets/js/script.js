@@ -880,8 +880,8 @@ async function initViewerPage() {
 
   checkAuth();
 
-  document.body.style.overflow = "auto";
-  document.documentElement.style.overflow = "auto";
+  document.body.style.overflow = "";
+  document.documentElement.style.overflow = "";
 
   loadArticle(slug);
 
@@ -929,7 +929,8 @@ async function initViewerPage() {
       await window.supabaseClient.auth.signOut();
       checkAuth();
 
-      document.body.style.overflow = "auto";
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     });
   }
 
@@ -1123,23 +1124,31 @@ function initInteractions(data) {
   script.text = JSON.stringify(schema);
   document.head.appendChild(script);
 
-  const clapBtn = document.getElementById("clap-btn");
+  const clapButtons = Array.from(
+    document.querySelectorAll(".js-article-like-btn"),
+  );
   const clapCount = document.getElementById("clap-count");
   let claps = data.claps || 0;
 
   if (clapCount) clapCount.textContent = claps;
 
-  if (clapBtn) {
+  if (clapButtons.length > 0) {
     const clapKey = `clapped_${data.id}`;
-    const hasClapped = localStorage.getItem(clapKey);
+    let hasClapped = localStorage.getItem(clapKey) === "true";
 
-    if (hasClapped) {
-      clapBtn.classList.add("clapped");
-      clapBtn.disabled = true;
-      clapBtn.title = "You've already liked this article";
-    }
+    const syncLikeButtons = () => {
+      clapButtons.forEach((btn) => {
+        btn.classList.toggle("clapped", hasClapped);
+        btn.disabled = hasClapped;
+        btn.title = hasClapped
+          ? "You've already liked this article"
+          : "Like this article";
+      });
+    };
 
-    clapBtn.addEventListener("click", async () => {
+    syncLikeButtons();
+
+    const handleLikeClick = async () => {
       const {
         data: { session },
       } = await window.supabaseClient.auth.getSession();
@@ -1159,16 +1168,12 @@ function initInteractions(data) {
         return;
       }
 
-      if (hasClapped) {
-        return;
-      }
+      if (hasClapped) return;
 
-      claps++;
-      clapCount.textContent = claps;
-      clapBtn.classList.add("clapped");
-      clapBtn.disabled = true;
-      clapBtn.title = "You've already liked this article";
-
+      claps += 1;
+      if (clapCount) clapCount.textContent = claps;
+      hasClapped = true;
+      syncLikeButtons();
       localStorage.setItem(clapKey, "true");
 
       try {
@@ -1176,17 +1181,18 @@ function initInteractions(data) {
           post_id: data.id,
         });
       } catch (err) {
-        // console.error("Error clapping:", err);
-
-        claps--;
-        clapCount.textContent = claps;
-        clapBtn.classList.remove("clapped");
-        clapBtn.disabled = false;
+        claps -= 1;
+        if (clapCount) clapCount.textContent = claps;
+        hasClapped = false;
+        syncLikeButtons();
         localStorage.removeItem(clapKey);
       }
+    };
+
+    clapButtons.forEach((btn) => {
+      btn.addEventListener("click", handleLikeClick);
     });
   }
-
   const scrollTopBtn = document.getElementById("scroll-top-btn");
   if (scrollTopBtn) {
     window.addEventListener("scroll", () => {
@@ -1278,8 +1284,8 @@ async function loadArticle(slug) {
     document.getElementById("article-loading").style.display = "none";
     document.getElementById("article-display").style.display = "block";
 
-    document.body.style.overflow = "auto";
-    document.documentElement.style.overflow = "auto";
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
 
     currentPostId = data.id;
 
@@ -1408,6 +1414,8 @@ function generateTOC() {
   const articleBody = document.getElementById("article-body");
   const tocList = document.getElementById("floating-toc-list");
   const tocContainer = document.getElementById("floating-toc");
+  const tocWrap = document.getElementById("floating-toc-wrap");
+  const tocTrigger = document.getElementById("floating-toc-trigger");
 
   if (!articleBody || !tocList || !tocContainer) return;
 
@@ -1415,12 +1423,44 @@ function generateTOC() {
 
   const headers = articleBody.querySelectorAll("h2, h3");
 
+  const syncTOCTriggerLines = (count) => {
+    if (!tocTrigger) return;
+
+    const lineCount = 3;
+    tocTrigger.innerHTML = "";
+
+    for (let i = 0; i < lineCount; i += 1) {
+      const line = document.createElement("span");
+      line.className = "toc-trigger-line";
+      tocTrigger.appendChild(line);
+    }
+  };
+
   if (headers.length < 2) {
     tocContainer.style.display = "none";
+    if (tocWrap) tocWrap.style.display = "none";
     return;
   }
 
+  syncTOCTriggerLines(headers.length);
+
   tocContainer.style.display = "block";
+  if (tocWrap) tocWrap.style.display = "block";
+
+  if (tocWrap && tocTrigger && !tocWrap.dataset.tocInit) {
+    const openTOC = () => tocWrap.classList.add("is-open");
+    const closeTOC = () => tocWrap.classList.remove("is-open");
+
+    tocWrap.addEventListener("mouseenter", openTOC);
+    tocWrap.addEventListener("mouseleave", closeTOC);
+    tocWrap.addEventListener("focusin", openTOC);
+    tocWrap.addEventListener("focusout", (e) => {
+      if (!tocWrap.contains(e.relatedTarget)) closeTOC();
+    });
+
+
+    tocWrap.dataset.tocInit = "1";
+  }
 
   headers.forEach((header, index) => {
     if (!header.id) {
@@ -1469,7 +1509,6 @@ function generateTOC() {
 
   headers.forEach((header) => observer.observe(header));
 }
-
 function initReadingProgress() {
   const progressBar = document.getElementById("reading-progress");
   if (!progressBar) return;
@@ -1727,7 +1766,6 @@ async function loadComments(postId, retries = 0) {
     .order("created_at", { ascending: true });
 
   if (error) {
-    // console.error("Error loading comments:", error);
     list.innerHTML = "<p>Could not load comments.</p>";
     return;
   }
@@ -1735,38 +1773,72 @@ async function loadComments(postId, retries = 0) {
   if (!comments || comments.length === 0) {
     list.innerHTML =
       '<p style="color: var(--text-muted); font-style: italic;">No comments yet. Be the first to say something!</p>';
-  } else {
-    list.innerHTML = comments
-      .map((c) => {
-        const isAuthor =
-          c.user_name === "Khushaank Gupta" || c.user_name === "Khushaank";
-        const authorClass = isAuthor ? " author-comment" : "";
-        const badge = isAuthor
-          ? '<span class="author-badge">Author</span>'
-          : "";
-        const dateStr = new Date(c.created_at).toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        });
-        const imageHtml = c.image_url
-          ? `<img src="${c.image_url}" class="comment-card-image" alt="Comment Image" loading="lazy">`
-          : "";
-        return `
-          <div class="comment-card${authorClass}">
-            <div class="comment-header">
-              <span class="comment-author">${c.user_name}${badge}</span>
-              <span class="comment-date">${dateStr}</span>
-            </div>
-            <div class="comment-body">${c.content}</div>
-            ${imageHtml}
-          </div>
-        `;
-      })
-      .join("");
+    return;
+  }
+
+  const renderCommentCard = (c) => {
+    const isAuthor =
+      c.user_name === "Khushaank Gupta" || c.user_name === "Khushaank";
+    const authorClass = isAuthor ? " author-comment" : "";
+    const badge = isAuthor ? '<span class="author-badge">Author</span>' : "";
+    const dateStr = new Date(c.created_at).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+    const imageHtml = c.image_url
+      ? `<img src="${c.image_url}" class="comment-card-image" alt="Comment Image" loading="lazy">`
+      : "";
+
+    return `
+      <div class="comment-card${authorClass}">
+        <div class="comment-header">
+          <span class="comment-author">${c.user_name}${badge}</span>
+          <span class="comment-date">${dateStr}</span>
+        </div>
+        <div class="comment-body">${c.content}</div>
+        ${imageHtml}
+      </div>
+    `;
+  };
+
+  const firstCommentHtml = renderCommentCard(comments[0]);
+  const remainingComments = comments.slice(1);
+
+  if (remainingComments.length === 0) {
+    list.innerHTML = firstCommentHtml;
+    return;
+  }
+
+  list.innerHTML = `
+    <div class="comments-preview-first">${firstCommentHtml}</div>
+    <div id="comments-rest" class="comments-rest" hidden>
+      ${remainingComments.map(renderCommentCard).join("")}
+    </div>
+    <button id="comments-expand-btn" class="comments-expand-btn" type="button" aria-expanded="false" aria-controls="comments-rest">
+      <span class="comments-expand-label">Show ${remainingComments.length} more</span>
+      <span class="comments-expand-arrow" aria-hidden="true">\u25be</span>
+    </button>
+  `;
+
+  const expandBtn = document.getElementById("comments-expand-btn");
+  const rest = document.getElementById("comments-rest");
+
+  if (expandBtn && rest) {
+    expandBtn.addEventListener("click", () => {
+      const isOpen = expandBtn.classList.toggle("is-open");
+      rest.hidden = !isOpen;
+      expandBtn.setAttribute("aria-expanded", String(isOpen));
+
+      const label = expandBtn.querySelector(".comments-expand-label");
+      if (label) {
+        label.textContent = isOpen
+          ? "Hide comments"
+          : `Show ${remainingComments.length} more`;
+      }
+    });
   }
 }
-
 async function checkAuth(retries = 0) {
   if (!window.supabaseClient) {
     if (retries < 10) {

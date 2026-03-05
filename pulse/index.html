@@ -84,8 +84,8 @@
       />
     </noscript>
 
-    <link rel="preload" href="/assets/css/style.css?v=2" as="style" />
-    <link rel="stylesheet" href="/assets/css/style.css?v=2" />
+    <link rel="preload" href="/assets/css/style.css?v=5" as="style" />
+    <link rel="stylesheet" href="/assets/css/style.css?v=5" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
       rel="stylesheet"
@@ -256,7 +256,19 @@
         <hr class="theme-58" />
 
         <div class="comments-section">
-          <h3 class="theme-margin-59">Conversation</h3>
+          <div class="comments-heading-row theme-margin-59">
+            <h3>Conversation</h3>
+            <button
+              id="comment-like-btn"
+              class="comment-like-btn clap-action js-article-like-btn"
+              type="button"
+              aria-label="Like this article"
+              title="Like this article"
+            >
+              <i data-lucide="star" size="15"></i>
+              <span>Like</span>
+            </button>
+          </div>
 
           <div id="auth-comment" class="theme-center-margin-60">
             <p class="theme-margin-muted-61">
@@ -430,25 +442,31 @@
     </main>
 
     <!-- Floating Table of Contents (outside transformed container) -->
-    <div id="floating-toc" class="floating-toc">
-      <div class="floating-toc-header">Table of Contents</div>
-      <ul id="floating-toc-list" class="floating-toc-list"></ul>
-    </div>
-
-    <!-- Floating Like/Share Sidebar (outside article, fixed position) -->
-    <div class="article-actions-floating" id="floating-actions">
-      <button id="clap-btn" class="action-btn clap-action floating-btn">
-        <div class="icon-circle-floating">
-          <i data-lucide="heart" size="20"></i>
-        </div>
-        <span id="clap-count">0</span>
+    <div id="floating-toc-wrap" class="floating-toc-wrap">
+      <button
+        id="floating-toc-trigger"
+        class="floating-toc-trigger"
+        aria-label="Open table of contents"
+        type="button"
+      >
+        <span class="toc-trigger-line"></span>
+        <span class="toc-trigger-line"></span>
+        <span class="toc-trigger-line"></span>
       </button>
 
-      <button id="btn-share-menu" class="action-btn floating-btn">
-        <div class="icon-circle-floating">
-          <i data-lucide="share" size="20"></i>
-        </div>
-        Share
+      <div id="floating-toc" class="floating-toc">
+        <div class="floating-toc-header">Table of Contents</div>
+        <ul id="floating-toc-list" class="floating-toc-list"></ul>
+      </div>
+    </div>
+    <!-- Floating Like/Share Sidebar (outside article, fixed position) -->
+    <div class="article-actions-floating" id="floating-actions">
+      <button
+        id="btn-share-menu"
+        class="action-btn floating-btn share-pill-btn"
+        aria-label="Share this article"
+      >
+        <i data-lucide="share-2" size="16"></i>
       </button>
     </div>
 
@@ -659,7 +677,7 @@
 
     <script src="/assets/js/search.js"></script>
     <script src="/assets/js/supabase-config.js"></script>
-    <script src="/assets/js/script.js?v=4"></script>
+    <script src="/assets/js/script.js?v=5"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
