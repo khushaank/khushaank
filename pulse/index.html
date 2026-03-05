@@ -235,11 +235,6 @@
               <span id="reading-time"></span>
             </div>
           </div>
-
-          <div id="floating-toc" class="floating-toc">
-            <div class="floating-toc-header">Table of Contents</div>
-            <ul id="floating-toc-list" class="floating-toc-list"></ul>
-          </div>
         </header>
 
         <div id="article-body" class="article-content"></div>
@@ -432,24 +427,30 @@
           </div>
         </div>
       </article>
-
-      <!-- Floating Like/Share Sidebar (outside article, fixed position) -->
-      <div class="article-actions-floating" id="floating-actions">
-        <button id="clap-btn" class="action-btn clap-action floating-btn">
-          <div class="icon-circle-floating">
-            <i data-lucide="heart" size="20"></i>
-          </div>
-          <span id="clap-count">0</span>
-        </button>
-
-        <button id="btn-share-menu" class="action-btn floating-btn">
-          <div class="icon-circle-floating">
-            <i data-lucide="share" size="20"></i>
-          </div>
-          Share
-        </button>
-      </div>
     </main>
+
+    <!-- Floating Table of Contents (outside transformed container) -->
+    <div id="floating-toc" class="floating-toc">
+      <div class="floating-toc-header">Table of Contents</div>
+      <ul id="floating-toc-list" class="floating-toc-list"></ul>
+    </div>
+
+    <!-- Floating Like/Share Sidebar (outside article, fixed position) -->
+    <div class="article-actions-floating" id="floating-actions">
+      <button id="clap-btn" class="action-btn clap-action floating-btn">
+        <div class="icon-circle-floating">
+          <i data-lucide="heart" size="20"></i>
+        </div>
+        <span id="clap-count">0</span>
+      </button>
+
+      <button id="btn-share-menu" class="action-btn floating-btn">
+        <div class="icon-circle-floating">
+          <i data-lucide="share" size="20"></i>
+        </div>
+        Share
+      </button>
+    </div>
 
     <footer>
       <div class="container theme-center-79">

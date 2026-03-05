@@ -1374,7 +1374,6 @@ async function loadArticle(slug) {
     window.supabaseClient.rpc("increment_post_view", { p_id: data.id });
 
     calculateReadingTime(data.content);
-    calculateReadingTime(data.content);
 
     initInteractions(data);
     initArticleSearch();
@@ -1384,6 +1383,8 @@ async function loadArticle(slug) {
     initFocusMode();
     loadRelatedPosts(data);
 
+    generateTOC();
+    initReadingProgress();
     lucide.createIcons();
 
     loadComments(data.id);
@@ -1486,7 +1487,15 @@ function initReadingProgress() {
     } else {
       totalHeight = document.documentElement.scrollHeight - window.innerHeight;
     }
+
+    if (totalHeight > 0) {
+      const progress = Math.min((window.scrollY / totalHeight) * 100, 100);
+      progressBar.style.width = progress + "%";
+    }
   };
+
+  window.addEventListener("scroll", updateProgress, { passive: true });
+  updateProgress();
 }
 
 function initNewsletter() {
@@ -2339,21 +2348,6 @@ navScript.src = "/assets/js/nav-algorithm.js";
 document.body.appendChild(navScript);
 
 document.addEventListener("DOMContentLoaded", () => {
-  initMobileMenu();
-  initIcons();
-  initObservers();
-
-  const articleBody = document.getElementById("article-body");
-  if (articleBody) {
-    initViewerPage();
-    initArticleSearch();
-    initLinkPreview();
-    initFocusMode();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const trackingId = urlParams.get("trackingid");
-  }
-
   if (document.querySelector(".ai-card")) {
     initAICardEffects();
   }
