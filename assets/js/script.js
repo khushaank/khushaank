@@ -594,6 +594,13 @@ if (document.readyState === "complete") {
   });
 }
 
+window.addEventListener("offline", () => {
+  if (!window.location.pathname.includes("offline")) {
+    sessionStorage.setItem("offline_return_url", window.location.href);
+    window.location.href = "/offline";
+  }
+});
+
 function hidePreloader() {
   const preloader = document.querySelector(".preloader");
   if (!preloader) return;
@@ -698,7 +705,7 @@ function createPostCardHtml(post) {
     : "background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%)";
 
   return `
-    <a href="/pulse/?slug=${post.slug || post.id}&trackingid=${generateTrackingId()}" class="blog-card fade-in" style="text-decoration: none;">
+    <a href="${buildPulseUrl(post.slug || post.id, generateTrackingId())}" class="blog-card fade-in" style="text-decoration: none;">
       <div class="blog-img" style="${bgStyle}"></div>
       <div class="blog-body">
         <span class="blog-cat">${post.category || "Insight"}</span>
@@ -717,6 +724,90 @@ function createPostCardHtml(post) {
 
 function generateTrackingId() {
   return "tid_" + Math.random().toString(36).substring(2, 9);
+}
+
+function buildPulsePath(slug) {
+  const safeSlug = encodeURIComponent(String(slug || "").trim());
+  return `/pulse/${safeSlug}`;
+}
+
+function isLocalDevHost() {
+  return ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+}
+
+function buildPulseUrl(slug, trackingId) {
+  const resolvedSlug = String(slug || "").trim();
+
+  if (isLocalDevHost()) {
+    const params = new URLSearchParams();
+    params.set("slug", resolvedSlug);
+    if (trackingId) {
+      params.set("trackingid", trackingId);
+    }
+    return `/pulse/index.html?${params.toString()}`;
+  }
+
+  const basePath = buildPulsePath(resolvedSlug);
+  if (!trackingId) return basePath;
+  return `${basePath}?trackingid=${encodeURIComponent(trackingId)}`;
+}
+
+function getCurrentViewerSlug() {
+  const params = new URLSearchParams(window.location.search);
+  const slugFromQuery = params.get("slug") || params.get("id");
+  if (slugFromQuery) return slugFromQuery;
+
+  const pathMatch = window.location.pathname.match(/\/pulse\/([^\/?#]+)/);
+  if (pathMatch && pathMatch[1]) {
+    try {
+      return decodeURIComponent(pathMatch[1]);
+    } catch {
+      return pathMatch[1];
+    }
+  }
+
+  return localStorage.getItem("pending_auth_slug") || "";
+}
+
+async function startGoogleAuthForViewer(
+  slug,
+  { includeDriveScope = false, reopenDriveUpload = false } = {},
+) {
+  if (!window.supabaseClient) {
+    return { error: new Error("Authentication service unavailable") };
+  }
+
+  const resolvedSlug = slug || getCurrentViewerSlug();
+  const origin = window.location.origin;
+  let redirectUrl = `${origin}/pulse/index.html`;
+
+  if (resolvedSlug) {
+    redirectUrl += `?slug=${encodeURIComponent(resolvedSlug)}`;
+    localStorage.setItem("pending_auth_slug", resolvedSlug);
+  }
+
+  if (reopenDriveUpload) {
+    sessionStorage.setItem("pending_drive_upload", "1");
+  }
+
+  const oauthOptions = {
+    redirectTo: redirectUrl,
+  };
+
+  if (includeDriveScope) {
+    oauthOptions.scopes =
+      "openid email profile https://www.googleapis.com/auth/drive.readonly";
+    oauthOptions.queryParams = {
+      access_type: "offline",
+      prompt: "consent",
+      include_granted_scopes: "true",
+    };
+  }
+
+  return await window.supabaseClient.auth.signInWithOAuth({
+    provider: "google",
+    options: oauthOptions,
+  });
 }
 
 function renderBlogGrid(posts, gridElement) {
@@ -890,7 +981,11 @@ async function initViewerPage() {
     const path = window.location.pathname;
     const match = path.match(/\/pulse\/([^\/]+)/);
     if (match && match[1]) {
-      slug = match[1];
+      try {
+        slug = decodeURIComponent(match[1]);
+      } catch {
+        slug = match[1];
+      }
     }
   }
 
@@ -918,12 +1013,14 @@ async function initViewerPage() {
 
   if (!isLocal && slug && window.location.pathname.includes("/pulse/")) {
     const trackingId = params.get("trackingid");
-    let newUrl = `/pulse/${slug}`;
+    const expectedPath = buildPulsePath(slug);
+    const normalizedPath = window.location.pathname.replace(/\/+$/, "");
+    let newUrl = expectedPath;
     if (trackingId) {
-      newUrl += `?trackingid=${trackingId}`;
+      newUrl += `?trackingid=${encodeURIComponent(trackingId)}`;
     }
 
-    if (!window.location.pathname.endsWith(slug)) {
+    if (normalizedPath !== expectedPath) {
       if (window.location.hash) {
         newUrl += window.location.hash;
       }
@@ -944,15 +1041,8 @@ async function initViewerPage() {
     const btn = document.getElementById(id);
     if (btn) {
       btn.addEventListener("click", async () => {
-        const origin = window.location.origin;
-        let redirectUrl = `${origin}/pulse/index.html?slug=${encodeURIComponent(slug)}`;
-        localStorage.setItem("pending_auth_slug", slug);
-
-        const { error } = await window.supabaseClient.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: redirectUrl,
-          },
+        const { error } = await startGoogleAuthForViewer(slug, {
+          includeDriveScope: false,
         });
 
         if (error) {
@@ -981,6 +1071,7 @@ async function initViewerPage() {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
       await window.supabaseClient.auth.signOut();
+      sessionStorage.removeItem("google_provider_token");
       checkAuth();
 
       document.body.style.overflow = "";
@@ -1021,7 +1112,7 @@ async function initViewerPage() {
           document.getElementById("article-title")?.textContent.trim() ||
           document.title;
         const origin = window.location.origin;
-        const shareUrl = `${origin}/pulse/?slug=${slug}&trackingid=${generateTrackingId()}`;
+        const shareUrl = `${origin}${buildPulseUrl(slug, generateTrackingId())}`;
 
         const articleBodyText =
           document.getElementById("article-body")?.innerText || "";
@@ -1127,7 +1218,7 @@ async function initViewerPage() {
       const excerpt =
         document.querySelector('meta[name="description"]')?.content || "";
       const origin = window.location.origin;
-      const shareUrl = `${origin}/pulse/?slug=${slug}&trackingid=${generateTrackingId()}`;
+      const shareUrl = `${origin}${buildPulseUrl(slug, generateTrackingId())}`;
 
       const embedHtml = `
 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; max-width: 600px; background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); color: #1e293b;">
@@ -1361,11 +1452,37 @@ async function loadArticle(slug) {
     document.documentElement.style.overflow = "";
 
     currentPostId = data.id;
+    const articleSlug = data.slug || slug || data.id;
+    const canonicalPath = buildPulsePath(articleSlug);
+    const canonicalUrl = `${window.location.origin}${canonicalPath}`;
+    const trackingId = new URLSearchParams(window.location.search).get(
+      "trackingid",
+    );
+    const normalizedPath = window.location.pathname.replace(/\/+$/, "");
+
+    if (!isLocalDevHost() && normalizedPath !== canonicalPath) {
+      let newUrl = canonicalPath;
+      if (trackingId) {
+        newUrl += `?trackingid=${encodeURIComponent(trackingId)}`;
+      }
+      if (window.location.hash) {
+        newUrl += window.location.hash;
+      }
+      window.history.replaceState({ path: newUrl }, "", newUrl);
+    }
 
     document.title = `${data.title} - Khushaank Gupta`;
 
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) metaDesc.content = data.excerpt || data.title;
+
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (!canonicalLink) {
+      canonicalLink = document.createElement("link");
+      canonicalLink.setAttribute("rel", "canonical");
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.href = canonicalUrl;
 
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) ogTitle.content = data.title;
@@ -1373,8 +1490,11 @@ async function loadArticle(slug) {
     const ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc) ogDesc.content = data.excerpt || "";
 
+    const ogType = document.querySelector('meta[property="og:type"]');
+    if (ogType) ogType.content = "article";
+
     const ogUrl = document.querySelector('meta[property="og:url"]');
-    if (ogUrl) ogUrl.content = window.location.href;
+    if (ogUrl) ogUrl.content = canonicalUrl;
 
     const ogImage = document.querySelector('meta[property="og:image"]');
     if (ogImage && data.image_url) ogImage.content = data.image_url;
@@ -1384,6 +1504,9 @@ async function loadArticle(slug) {
 
     const twDesc = document.querySelector('meta[name="twitter:description"]');
     if (twDesc) twDesc.content = data.excerpt || "";
+
+    const twUrl = document.querySelector('meta[name="twitter:url"]');
+    if (twUrl) twUrl.content = canonicalUrl;
 
     const twImage = document.querySelector('meta[name="twitter:image"]');
     if (twImage && data.image_url) twImage.content = data.image_url;
@@ -1405,9 +1528,10 @@ async function loadArticle(slug) {
         },
         datePublished: data.created_at,
         dateModified: data.updated_at || data.created_at,
+        url: canonicalUrl,
         mainEntityOfPage: {
           "@type": "WebPage",
-          "@id": window.location.href,
+          "@id": canonicalUrl,
         },
       };
       schemaScript.textContent = JSON.stringify(schemaData);
@@ -2032,6 +2156,14 @@ async function checkAuth(retries = 0) {
     const userDisplay = document.getElementById("user-display-name");
 
     if (session && session.user) {
+      if (session.provider_token) {
+        const provider = session.user?.app_metadata?.provider;
+        const providers = session.user?.app_metadata?.providers || [];
+        if (provider === "google" || providers.includes("google")) {
+          sessionStorage.setItem("google_provider_token", session.provider_token);
+        }
+      }
+
       if (loginSection) loginSection.style.display = "none";
       if (formSection) formSection.style.display = "block";
       if (userDisplay) {
@@ -2045,6 +2177,7 @@ async function checkAuth(retries = 0) {
         userDisplay.textContent = `Posting as ${name}`;
       }
     } else {
+      sessionStorage.removeItem("google_provider_token");
       if (loginSection) loginSection.style.display = "block";
       if (formSection) formSection.style.display = "none";
     }
@@ -2153,6 +2286,7 @@ async function handleCommentSubmit(e) {
 }
 
 function setupCommentImageUploader() {
+  const MAX_COMMENT_IMAGE_BYTES = 10 * 1024 * 1024;
   const addBtn = document.getElementById("add-image-btn");
   const fileInput = document.getElementById("comment-image-upload");
   const previewContainer = document.getElementById("comment-image-preview");
@@ -2174,6 +2308,200 @@ function setupCommentImageUploader() {
     dt.items.add(file);
     fileInput.files = dt.files;
     if (popover) popover.classList.remove("active");
+  }
+
+  async function reconnectForDriveAccess() {
+    const viewerSlug = getCurrentViewerSlug();
+    if (popover) popover.classList.remove("active");
+    const { error } = await startGoogleAuthForViewer(viewerSlug, {
+      includeDriveScope: true,
+      reopenDriveUpload: true,
+    });
+    if (error) {
+      alert("Could not reconnect Google Drive access: " + error.message);
+    }
+  }
+
+  async function fetchDriveImages(accessToken) {
+    const q = encodeURIComponent("trashed=false and mimeType contains 'image/'");
+    const fields = encodeURIComponent(
+      "files(id,name,mimeType,size,modifiedTime),nextPageToken",
+    );
+    const url =
+      `https://www.googleapis.com/drive/v3/files?pageSize=20&orderBy=modifiedTime desc&q=${q}` +
+      `&fields=${fields}&includeItemsFromAllDrives=true&supportsAllDrives=true`;
+
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const payload = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      const reason = payload?.error?.errors?.[0]?.reason || "";
+      const needsReconnect =
+        res.status === 401 ||
+        res.status === 403 ||
+        reason === "insufficientPermissions" ||
+        reason === "authError";
+
+      return {
+        ok: false,
+        needsReconnect,
+        message:
+          payload?.error?.message ||
+          "Could not read Google Drive files for this account.",
+      };
+    }
+
+    return {
+      ok: true,
+      files: Array.isArray(payload?.files) ? payload.files : [],
+    };
+  }
+
+  async function downloadDriveImage(accessToken, fileMeta) {
+    const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileMeta.id)}?alt=media&supportsAllDrives=true`;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        return {
+          ok: false,
+          needsReconnect: true,
+          message: "Google Drive permission expired. Please reconnect once.",
+        };
+      }
+      return {
+        ok: false,
+        message: "Could not download selected image from Google Drive.",
+      };
+    }
+
+    const blob = await res.blob();
+
+    if (!blob.type.startsWith("image/")) {
+      return {
+        ok: false,
+        message: "Selected file is not a supported image.",
+      };
+    }
+
+    if (blob.size > MAX_COMMENT_IMAGE_BYTES) {
+      return {
+        ok: false,
+        message: "Selected image is larger than 10 MB. Please choose a smaller file.",
+      };
+    }
+
+    const fileName =
+      fileMeta.name ||
+      `drive-image-${Date.now()}.${(blob.type.split("/")[1] || "jpg").replace(
+        /[^a-z0-9]/gi,
+        "",
+      )}`;
+    const file = new File([blob], fileName, {
+      type: blob.type || fileMeta.mimeType || "image/jpeg",
+    });
+
+    return { ok: true, file };
+  }
+
+  async function handleDriveUpload() {
+    if (!window.supabaseClient) {
+      alert("Authentication service is unavailable. Please refresh and try again.");
+      return;
+    }
+
+    const {
+      data: { session },
+    } = await window.supabaseClient.auth.getSession();
+
+    if (!session || !session.user) {
+      alert("Please sign in with Google first to attach files from Drive.");
+      return;
+    }
+
+    const provider = session.user?.app_metadata?.provider;
+    const providers = session.user?.app_metadata?.providers || [];
+    if (provider !== "google" && !providers.includes("google")) {
+      alert("Drive upload is only available for Google sign-in.");
+      return;
+    }
+
+    const accessToken =
+      session.provider_token || sessionStorage.getItem("google_provider_token");
+    if (!accessToken) {
+      alert(
+        "Google Drive access requires one-time permission. Reconnecting now...",
+      );
+      await reconnectForDriveAccess();
+      return;
+    }
+
+    const listResult = await fetchDriveImages(accessToken);
+    if (!listResult.ok) {
+      if (listResult.needsReconnect) {
+        sessionStorage.removeItem("google_provider_token");
+        alert("Please grant Google Drive permissions once to continue.");
+        await reconnectForDriveAccess();
+        return;
+      }
+      alert(listResult.message);
+      return;
+    }
+
+    const files = (listResult.files || []).filter((f) =>
+      String(f.mimeType || "").startsWith("image/"),
+    );
+
+    if (files.length === 0) {
+      alert("No images found in your Google Drive.");
+      return;
+    }
+
+    const maxChoices = Math.min(files.length, 15);
+    const optionsText = files
+      .slice(0, maxChoices)
+      .map((file, idx) => `${idx + 1}. ${file.name || `Image ${idx + 1}`}`)
+      .join("\n");
+
+    const selection = window.prompt(
+      `Select a Google Drive image by number:\n\n${optionsText}\n\nEnter 1-${maxChoices}`,
+    );
+
+    if (!selection) return;
+
+    const selectedIndex = Number.parseInt(selection, 10) - 1;
+    if (
+      !Number.isInteger(selectedIndex) ||
+      selectedIndex < 0 ||
+      selectedIndex >= maxChoices
+    ) {
+      alert("Invalid selection. Please try again.");
+      return;
+    }
+
+    const selectedFile = files[selectedIndex];
+    const downloadResult = await downloadDriveImage(accessToken, selectedFile);
+
+    if (!downloadResult.ok) {
+      if (downloadResult.needsReconnect) {
+        sessionStorage.removeItem("google_provider_token");
+        await reconnectForDriveAccess();
+        return;
+      }
+      alert(downloadResult.message);
+      return;
+    }
+
+    handleFile(downloadResult.file);
   }
 
   addBtn.addEventListener("click", (e) => {
@@ -2229,9 +2557,17 @@ function setupCommentImageUploader() {
   }
 
   if (fromDriveBtn) {
-    fromDriveBtn.addEventListener("click", () => {
-      fileInput.click();
-      if (popover) popover.classList.remove("active");
+    fromDriveBtn.addEventListener("click", async () => {
+      const originalContent = fromDriveBtn.innerHTML;
+      fromDriveBtn.disabled = true;
+      fromDriveBtn.textContent = "Loading Drive...";
+
+      try {
+        await handleDriveUpload();
+      } finally {
+        fromDriveBtn.disabled = false;
+        fromDriveBtn.innerHTML = originalContent;
+      }
     });
   }
 
@@ -2241,6 +2577,13 @@ function setupCommentImageUploader() {
       if (previewContainer) previewContainer.style.display = "none";
       fileInput.value = "";
     });
+  }
+
+  if (fromDriveBtn && sessionStorage.getItem("pending_drive_upload") === "1") {
+    sessionStorage.removeItem("pending_drive_upload");
+    setTimeout(() => {
+      fromDriveBtn.click();
+    }, 350);
   }
 }
 
@@ -2266,14 +2609,14 @@ async function initArticleNavigation(currentPost) {
       if (e.key === "ArrowRight") {
         e.preventDefault();
         if (nextPost) {
-          window.location.href = `/pulse/?slug=${nextPost.slug || nextPost.id}`;
+          window.location.href = buildPulseUrl(nextPost.slug || nextPost.id);
         } else {
           // console.log("Already at the latest article.");
         }
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         if (prevPost) {
-          window.location.href = `/pulse/?slug=${prevPost.slug || prevPost.id}`;
+          window.location.href = buildPulseUrl(prevPost.slug || prevPost.id);
         } else {
           // console.log("Already at the first article.");
         }
@@ -2355,7 +2698,7 @@ async function loadRelatedPosts(currentPost) {
     grid.innerHTML = related
       .map(
         (post) => `
-        <a href="/pulse/?slug=${post.slug || post.id}&trackingid=${generateTrackingId()}" class="post-card fade-in">
+        <a href="${buildPulseUrl(post.slug || post.id, generateTrackingId())}" class="post-card fade-in">
           <div class="post-image" style="background: ${
             post.image_url
               ? `url('${post.image_url}')`

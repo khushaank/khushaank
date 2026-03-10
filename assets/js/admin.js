@@ -936,13 +936,13 @@ function renderTable(posts) {
     tr.innerHTML = `
             <td>
                 <div style="font-weight: 600; font-size: 1rem;">${post.title}</div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">/pulse/${post.slug || ""}</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">/pulse/${post.slug || post.id}</div>
             </td>
             <td>${new Date(post.created_at).toLocaleDateString()}</td>
             <td>${post.views || 0}</td>
             <td style="text-align: right;">
                 <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                  <button class="icon-btn" title="Stats" onclick="openStatsModal('${post.slug}', '${post.title.replace(/'/g, "\\'")}', ${post.views || 0})">
+                  <button class="icon-btn" title="Stats" onclick="openStatsModal('${post.slug || post.id}', '${post.title.replace(/'/g, "\\'")}', ${post.views || 0})">
                     <i data-lucide="bar-chart-2" size="18"></i>
                   </button>
                   <button class="icon-btn" title="Edit" onclick="editPost('${post.id}')">
@@ -968,11 +968,13 @@ async function openStatsModal(slug, title, totalViews) {
   document.getElementById("stats-unique-visitors").textContent = "Loading...";
   modal.classList.add("active");
 
-  const pagePath = `/pulse/?slug=${slug}`;
-  const { data: views, error } = await supabaseClient
+  const articleKeyRaw = String(slug || "").trim();
+  const articleKey = articleKeyRaw.toLowerCase();
+  const articleKeyEncoded = encodeURIComponent(articleKeyRaw).toLowerCase();
+  const { data: allPulseViews, error } = await supabaseClient
     .from("page_views")
-    .select("created_at, tracking_id")
-    .ilike("page_path", `${pagePath}%`)
+    .select("created_at, tracking_id, page_path")
+    .ilike("page_path", "/pulse/%")
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -980,6 +982,16 @@ async function openStatsModal(slug, title, totalViews) {
     document.getElementById("stats-unique-visitors").textContent = "N/A";
     return;
   }
+
+  const views = (allPulseViews || []).filter((view) => {
+    const path = (view.page_path || "").toLowerCase();
+    return (
+      path.includes(`/pulse/${articleKey}`) ||
+      path.includes(`/pulse/${articleKeyEncoded}`) ||
+      path.includes(`slug=${articleKey}`) ||
+      path.includes(`slug=${articleKeyEncoded}`)
+    );
+  });
 
   const uniqueVisitors = new Set(views.map((v) => v.tracking_id)).size;
   document.getElementById("stats-unique-visitors").textContent = uniqueVisitors;

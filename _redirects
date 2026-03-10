@@ -12,6 +12,8 @@
 /admin      /admin.html    200
 /privacy    /privacy.html  200
 /terms      /terms.html    200
+/maintenance /maintenance.html 200
+/offline    /offline.html  200
 
 # 404 page
 /*  /404.html  404

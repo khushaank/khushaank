@@ -14,7 +14,8 @@
       href="/rss.xml"
     />
     <link rel="author" href="/humans.txt" />
-    <meta name="robots" content="index, follow" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta
       name="description"
       content="Khushaank's Pulse - Insights on Quant, LLMs, and Strategic Finance."
@@ -29,13 +30,17 @@
         const params = new URLSearchParams(window.location.search);
         const hasId = params.has("id");
         const hasSlug = params.has("slug");
+        const path = window.location.pathname || "";
+        const hasSlugInPath = /^\/pulse\/[^/?#]+/.test(path);
         const hash = window.location.hash;
         const isAuthCallback =
           params.has("code") ||
           hash.includes("access_token") ||
           hash.includes("error") ||
           hash.includes("type=recovery");
-        if (!hasId && !hasSlug && !isAuthCallback) {
+        const isPulseRootPath =
+          path === "/pulse" || path === "/pulse/" || path.endsWith("/pulse/index.html");
+        if (!hasId && !hasSlug && !hasSlugInPath && !isAuthCallback && isPulseRootPath) {
           window.location.replace("/blog");
         }
       })();
@@ -91,9 +96,9 @@
       rel="stylesheet"
     />
 
-    <script src="/assets/js/lucide.min.js" defer=""></script>
-    <script src="/assets/js/supabase.min.js"></script>
-    <link rel="canonical" href="https://khushaankgupta.qzz.io/pulse" />
+    <script src="/assets/js/lucide.min.js" defer></script>
+    <script src="/assets/js/supabase-config.js" defer></script>
+    <script src="/assets/js/supabase.min.js" defer></script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -106,7 +111,8 @@
     </script>
   </head>
   <body class="viewer-page">
-    <div class="preloader">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="preloader" aria-hidden="true">
       <div class="loader-bar"></div>
     </div>
     <div id="reading-progress-container" class="reading-progress-container">
@@ -137,8 +143,8 @@
       </div>
     </div>
 
-    <header class="navbar">
-      <div class="container nav-container">
+    <header class="navbar" role="banner">
+      <div class="container nav-container" role="navigation" aria-label="Main Navigation">
         <!-- Back Button for Viewer Page -->
         <a
           id="viewer-back-btn"
@@ -162,8 +168,8 @@
           <a href="/contact" class="btn nav-cta-btn">Let's Talk</a>
         </div>
         <div class="row mobile-toggle">
-          <input type="checkbox" id="hamburger" />
-          <label for="hamburger" class="hamburger">
+          <input type="checkbox" id="hamburger" aria-label="Toggle Navigation Menu" />
+          <label for="hamburger" class="hamburger" aria-hidden="true">
             <span class="line"></span>
             <span class="line"></span>
             <span class="line"></span>
@@ -181,7 +187,7 @@
       <a href="/contact" class="btn mobile-cta">Let's Talk</a>
     </div>
 
-    <main class="article-container fade-in">
+    <main id="main-content" class="article-container fade-in" role="main">
       <div id="article-loading" class="article-skeleton">
         <div class="skeleton-meta-bar">
           <div class="skeleton-line theme-w-42"></div>
@@ -470,12 +476,12 @@
         <ul id="floating-toc-list" class="floating-toc-list"></ul>
       </div>
     </div>
-    <footer>
+    <footer role="contentinfo">
       <div class="container theme-center-79">
         © <span id="current-year"></span> Khushaank Gupta.
         <span class="footer-legal theme-33">
-          • <a href="/privacy" target="_blank">Privacy</a> •
-          <a href="/terms" target="_blank">Terms</a>
+          • <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy</a> •
+          <a href="/terms" target="_blank" rel="noopener noreferrer">Terms</a>
         </span>
       </div>
     </footer>
@@ -485,7 +491,7 @@
       class="scroll-top-btn"
       aria-label="Scroll to top"
     >
-      <i data-lucide="arrow-up" size="24"></i>
+      <i data-lucide="arrow-up" size="24" aria-hidden="true"></i>
     </button>
 
     <div id="newsletter-slidein" class="newsletter-slidein">
@@ -675,13 +681,12 @@
       </div>
     </div>
 
-    <script src="/assets/js/search.js"></script>
-    <script src="/assets/js/supabase-config.js"></script>
-    <script src="/assets/js/script.js?v=6"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="/assets/js/search.js" defer></script>
+    <script src="/assets/js/script.js?v=6" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js" defer></script>
   </body>
 </html>

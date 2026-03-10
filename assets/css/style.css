@@ -30,6 +30,32 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Skip Link for Accessibility */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 20px;
+  z-index: 10001;
+  border-radius: 0 0 10px 10px;
+  font-weight: 600;
+  transition: top 0.3s var(--ease);
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Improved Focus States */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
 }
 
 html {
@@ -448,6 +474,7 @@ input#hamburger:checked + label.hamburger .line:nth-child(3) {
   line-height: 1.1;
   margin-bottom: 1.5rem;
   color: #000;
+  text-wrap: balance;
 }
 
 .hero p {

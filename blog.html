@@ -6,6 +6,7 @@
     <title>Financial Chronicles — Insights by Khushaank Gupta</title>
     <link rel="icon" type="image/png" href="/assets/images/favicon.webp" />
     <link rel="apple-touch-icon" href="/assets/images/favicon.webp" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#ffffff" />
     <link rel="author" href="/humans.txt" />
     <meta
@@ -104,16 +105,17 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/css/style.css?v=5" />
-    <script src="/assets/js/lucide.min.js"></script>
-    <script src="/assets/js/supabase.min.js"></script>
+    <script src="/assets/js/lucide.min.js" defer></script>
+    <script src="/assets/js/supabase.min.js" defer></script>
 
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   </head>
   <body>
-    <div class="preloader">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="preloader" aria-hidden="true">
       <div class="loader-bar"></div>
     </div>
-    <header class="navbar">
+    <header class="navbar" role="banner">
       <div class="container nav-container">
         <a href="/" class="brand">KG.</a>
         <nav>
@@ -129,8 +131,8 @@
           <a href="/contact" class="btn nav-cta-btn">Let's Talk</a>
         </div>
         <div class="row mobile-toggle">
-          <input type="checkbox" id="hamburger" />
-          <label for="hamburger" class="hamburger">
+          <input type="checkbox" id="hamburger" aria-label="Toggle Navigation Menu" />
+          <label for="hamburger" class="hamburger" aria-hidden="true">
             <span class="line"></span>
             <span class="line"></span>
             <span class="line"></span>
@@ -148,7 +150,7 @@
       <a href="/contact" class="btn mobile-cta">Let's Talk</a>
     </div>
 
-    <main>
+    <main id="main-content" role="main">
       <section class="container section-padding">
         <div class="blog-hero fade-in">
           <h1 class="blog-headline">Financial Chronicles</h1>
@@ -304,8 +306,8 @@
       <i data-lucide="arrow-up" size="24"></i>
     </button>
 
-    <script src="assets/js/search.js"></script>
-    <script src="assets/js/supabase-config.js"></script>
-    <script src="assets/js/script.js?v=5"></script>
+    <script src="assets/js/search.js" defer></script>
+    <script src="assets/js/supabase-config.js" defer></script>
+    <script src="assets/js/script.js?v=5" defer></script>
   </body>
 </html>

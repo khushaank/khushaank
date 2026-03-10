@@ -6,6 +6,9 @@ Allow: /
 Disallow: /admin
 Disallow: /rss-generator.html
 Disallow: /pulse/index.html
+Disallow: /maintenance
+Disallow: /offline
+Disallow: /login
 
 # Sitemaps
 Sitemap: https://khushaankgupta.qzz.io/sitemap.xml

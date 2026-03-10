@@ -25,7 +25,18 @@ function initSearch() {
           item.addEventListener("click", () => {
             const slug = item.getAttribute("data-slug");
             const tid = "tid_" + Math.random().toString(36).substr(2, 7);
-            window.location.href = `/pulse/?slug=${slug}&trackingid=${tid}`;
+            const isLocal = ["localhost", "127.0.0.1", "::1"].includes(
+              window.location.hostname,
+            );
+            if (isLocal) {
+              const params = new URLSearchParams();
+              params.set("slug", slug || "");
+              params.set("trackingid", tid);
+              window.location.href = `/pulse/index.html?${params.toString()}`;
+            } else {
+              const encodedSlug = encodeURIComponent(slug || "");
+              window.location.href = `/pulse/${encodedSlug}?trackingid=${encodeURIComponent(tid)}`;
+            }
           });
         });
       } else {

@@ -6,7 +6,10 @@
     <title>Khushaank Gupta — AI, Strategy &amp; Finance</title>
     <link rel="icon" type="image/png" href="/assets/images/favicon.webp" />
     <link rel="apple-touch-icon" href="/assets/images/favicon.webp" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#ffffff" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
     <link rel="author" href="/humans.txt" />
     <meta
       name="description"
@@ -66,8 +69,8 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/css/style.css?v=5" />
-    <script src="/assets/js/lucide.min.js"></script>
-    <script src="/assets/js/supabase.min.js"></script>
+    <script src="/assets/js/lucide.min.js" defer></script>
+    <script src="/assets/js/supabase.min.js" defer></script>
     <script type="application/ld+json">
       [
         {
@@ -109,14 +112,29 @@
         }
       ]
     </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SiteNavigationElement",
+        "name": ["About", "AI & Quantitative Finance", "Resources", "Insights", "Contact"],
+        "url": [
+          "https://khushaankgupta.qzz.io/#about",
+          "https://khushaankgupta.qzz.io/ai",
+          "https://khushaankgupta.qzz.io/resources",
+          "https://khushaankgupta.qzz.io/blog",
+          "https://khushaankgupta.qzz.io/contact"
+        ]
+      }
+    </script>
 
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   </head>
   <body>
-    <div class="preloader">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <div class="preloader" aria-hidden="true">
       <div class="loader-bar"></div>
     </div>
-    <header class="navbar">
+    <header class="navbar" role="banner">
       <div class="container nav-container">
         <a href="/" class="brand">KG.</a>
         <nav>
@@ -132,8 +150,8 @@
           <a href="/contact" class="btn nav-cta-btn">Let's Talk</a>
         </div>
         <div class="row mobile-toggle">
-          <input type="checkbox" id="hamburger" />
-          <label for="hamburger" class="hamburger">
+          <input type="checkbox" id="hamburger" aria-label="Toggle Navigation Menu" />
+          <label for="hamburger" class="hamburger" aria-hidden="true">
             <span class="line"></span>
             <span class="line"></span>
             <span class="line"></span>
@@ -152,7 +170,7 @@
       <a href="/contact" class="btn mobile-cta">Let's Talk</a>
     </div>
 
-    <main>
+    <main id="main-content" role="main">
       <section class="hero container">
         <div class="hero-grid">
           <div class="hero-content fade-in">
@@ -894,11 +912,11 @@
       class="scroll-top-btn"
       aria-label="Scroll to top"
     >
-      <i data-lucide="arrow-up" size="24"></i>
+      <i data-lucide="arrow-up" size="24" aria-hidden="true"></i>
     </button>
 
-    <script src="assets/js/search.js"></script>
-    <script src="assets/js/supabase-config.js"></script>
-    <script src="assets/js/script.js?v=5"></script>
+    <script src="assets/js/search.js" defer></script>
+    <script src="assets/js/supabase-config.js" defer></script>
+    <script src="assets/js/script.js?v=5" defer></script>
   </body>
 </html>
