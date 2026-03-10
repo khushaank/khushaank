@@ -49,6 +49,101 @@ function initObservers() {
   window.currentObserver = observer;
 }
 
+function initHeaderServicesHover() {
+  const navbar = document.querySelector(".navbar");
+  if (!navbar) return;
+
+  const panelSelector =
+    ".dropdown-menu, .submenu, .mega-menu, .services-menu, .services-dropdown, [data-menu-panel]";
+  const rootSelector =
+    ".has-dropdown, .nav-item-dropdown, [data-menu-root], [data-services-root], [data-services-menu], li";
+
+  const candidateRoots = Array.from(navbar.querySelectorAll(rootSelector)).filter(
+    (root) => root.querySelector(panelSelector),
+  );
+
+  if (candidateRoots.length === 0) return;
+
+  candidateRoots.forEach((root) => {
+    if (root.dataset.hoverIntentInit === "1") return;
+
+    const panel = root.querySelector(panelSelector);
+    if (!panel) return;
+
+    const trigger = root.querySelector(
+      "[data-menu-trigger], [data-services-trigger], a, button",
+    );
+    const OPEN_DELAY_MS = 90;
+    const CLOSE_DELAY_MS = 420;
+    let openTimer = null;
+    let closeTimer = null;
+
+    const clearTimers = () => {
+      clearTimeout(openTimer);
+      clearTimeout(closeTimer);
+    };
+
+    const setOpenState = (isOpen) => {
+      root.classList.toggle("hover-intent-open", isOpen);
+      if (trigger) {
+        trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      }
+    };
+
+    const openWithDelay = () => {
+      clearTimeout(closeTimer);
+      clearTimeout(openTimer);
+      openTimer = setTimeout(() => setOpenState(true), OPEN_DELAY_MS);
+    };
+
+    const closeWithDelay = () => {
+      clearTimeout(openTimer);
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(() => setOpenState(false), CLOSE_DELAY_MS);
+    };
+
+    const handlePointerLeave = (event) => {
+      const nextTarget = event.relatedTarget;
+      if (nextTarget && root.contains(nextTarget)) return;
+      closeWithDelay();
+    };
+
+    root.addEventListener("mouseenter", openWithDelay);
+    root.addEventListener("mouseleave", handlePointerLeave);
+    panel.addEventListener("mouseenter", openWithDelay);
+    panel.addEventListener("mouseleave", handlePointerLeave);
+
+    root.addEventListener("focusin", openWithDelay);
+    root.addEventListener("focusout", (event) => {
+      if (!root.contains(event.relatedTarget)) {
+        closeWithDelay();
+      }
+    });
+
+    if (trigger) {
+      if (!trigger.hasAttribute("aria-expanded")) {
+        trigger.setAttribute("aria-expanded", "false");
+      }
+
+      trigger.addEventListener("click", (event) => {
+        if (!window.matchMedia("(hover: none)").matches) return;
+        event.preventDefault();
+        clearTimers();
+        setOpenState(!root.classList.contains("hover-intent-open"));
+      });
+    }
+
+    document.addEventListener("click", (event) => {
+      if (!root.contains(event.target)) {
+        clearTimers();
+        setOpenState(false);
+      }
+    });
+
+    root.dataset.hoverIntentInit = "1";
+  });
+}
+
 function initHome() {
   if (document.getElementById("latest-posts-grid")) {
     loadLatestPosts();
@@ -79,6 +174,7 @@ function initPage() {
   initMobileMenu();
   initIcons();
   initObservers();
+  initHeaderServicesHover();
 
   const path = window.location.pathname;
 
@@ -769,10 +865,80 @@ function getCurrentViewerSlug() {
   return localStorage.getItem("pending_auth_slug") || "";
 }
 
-async function startGoogleAuthForViewer(
-  slug,
-  { includeDriveScope = false, reopenDriveUpload = false } = {},
-) {
+function parseOAuthErrorFromUrl() {
+  const queryParams = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+  const code = queryParams.get("error") || hashParams.get("error");
+  const description =
+    queryParams.get("error_description") || hashParams.get("error_description");
+
+  if (!code) return null;
+
+  let decodedDescription = description || "";
+  if (decodedDescription) {
+    try {
+      decodedDescription = decodeURIComponent(decodedDescription);
+    } catch {
+      // Keep raw description if decoding fails.
+    }
+  }
+
+  return {
+    code,
+    description: decodedDescription,
+  };
+}
+
+function formatOAuthErrorMessage(oauthError) {
+  if (!oauthError) return "";
+
+  const raw = `${oauthError.code} ${oauthError.description}`.toLowerCase();
+
+  if (
+    raw.includes("access_denied") &&
+    (raw.includes("developer-approved testers") ||
+      raw.includes("verification process") ||
+      raw.includes("app is currently being tested"))
+  ) {
+    return (
+      "Google sign-in is blocked because your OAuth app is in testing mode. " +
+      "Add this email as a Test User in Google Cloud Console > OAuth consent screen, " +
+      "or publish the consent screen before retrying."
+    );
+  }
+
+  if (oauthError.description) {
+    return `Google sign-in failed: ${oauthError.description}`;
+  }
+
+  return `Google sign-in failed: ${oauthError.code}`;
+}
+
+function clearOAuthErrorFromUrl() {
+  const url = new URL(window.location.href);
+  const params = url.searchParams;
+  let changed = false;
+
+  ["error", "error_description", "error_code", "error_uri"].forEach((key) => {
+    if (params.has(key)) {
+      params.delete(key);
+      changed = true;
+    }
+  });
+
+  if (url.hash.includes("error")) {
+    url.hash = "";
+    changed = true;
+  }
+
+  if (changed) {
+    const next = `${url.pathname}${params.toString() ? `?${params.toString()}` : ""}${url.hash}`;
+    window.history.replaceState({}, "", next);
+  }
+}
+
+async function startGoogleAuthForViewer(slug) {
   if (!window.supabaseClient) {
     return { error: new Error("Authentication service unavailable") };
   }
@@ -786,27 +952,11 @@ async function startGoogleAuthForViewer(
     localStorage.setItem("pending_auth_slug", resolvedSlug);
   }
 
-  if (reopenDriveUpload) {
-    sessionStorage.setItem("pending_drive_upload", "1");
-  }
-
-  const oauthOptions = {
-    redirectTo: redirectUrl,
-  };
-
-  if (includeDriveScope) {
-    oauthOptions.scopes =
-      "openid email profile https://www.googleapis.com/auth/drive.readonly";
-    oauthOptions.queryParams = {
-      access_type: "offline",
-      prompt: "consent",
-      include_granted_scopes: "true",
-    };
-  }
-
   return await window.supabaseClient.auth.signInWithOAuth({
     provider: "google",
-    options: oauthOptions,
+    options: {
+      redirectTo: redirectUrl,
+    },
   });
 }
 
@@ -975,6 +1125,13 @@ function initViewerBackButton() {
 
 async function initViewerPage() {
   const params = new URLSearchParams(window.location.search);
+  const oauthError = parseOAuthErrorFromUrl();
+
+  if (oauthError) {
+    alert(formatOAuthErrorMessage(oauthError));
+    clearOAuthErrorFromUrl();
+  }
+
   let slug = params.get("slug") || params.get("id");
 
   if (!slug) {
@@ -1041,9 +1198,7 @@ async function initViewerPage() {
     const btn = document.getElementById(id);
     if (btn) {
       btn.addEventListener("click", async () => {
-        const { error } = await startGoogleAuthForViewer(slug, {
-          includeDriveScope: false,
-        });
+        const { error } = await startGoogleAuthForViewer(slug);
 
         if (error) {
           // console.error("OAuth error:", error);
@@ -1071,7 +1226,6 @@ async function initViewerPage() {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
       await window.supabaseClient.auth.signOut();
-      sessionStorage.removeItem("google_provider_token");
       checkAuth();
 
       document.body.style.overflow = "";
@@ -1668,39 +1822,65 @@ function generateTOC() {
 
   if (tocWrap && tocTrigger && !tocWrap.dataset.tocInit) {
     const supportsHover = window.matchMedia("(hover: hover)").matches;
+    const TOC_OPEN_DELAY_MS = 120;
+    const TOC_CLOSE_DELAY_MS = 460;
     let openTimer = null;
+    let closeTimer = null;
+
+    const clearTOCTimers = () => {
+      clearTimeout(openTimer);
+      clearTimeout(closeTimer);
+    };
 
     const openWithDelay = () => {
+      clearTimeout(closeTimer);
       clearTimeout(openTimer);
-      openTimer = setTimeout(() => setTOCOpen(true), 180);
+      openTimer = setTimeout(() => setTOCOpen(true), TOC_OPEN_DELAY_MS);
+    };
+
+    const closeWithDelay = () => {
+      clearTimeout(openTimer);
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(() => setTOCOpen(false), TOC_CLOSE_DELAY_MS);
     };
 
     const closeImmediately = () => {
-      clearTimeout(openTimer);
+      clearTOCTimers();
       setTOCOpen(false);
     };
 
     if (supportsHover) {
       tocWrap.addEventListener("mouseenter", openWithDelay);
-      tocWrap.addEventListener("mouseleave", closeImmediately);
+      tocWrap.addEventListener("mouseleave", (e) => {
+        const nextTarget = e.relatedTarget;
+        if (nextTarget && tocWrap.contains(nextTarget)) return;
+        closeWithDelay();
+      });
+
+      tocContainer.addEventListener("mouseenter", openWithDelay);
+      tocContainer.addEventListener("mouseleave", (e) => {
+        const nextTarget = e.relatedTarget;
+        if (nextTarget && tocWrap.contains(nextTarget)) return;
+        closeWithDelay();
+      });
     }
 
     tocWrap.addEventListener("focusin", openWithDelay);
     tocWrap.addEventListener("focusout", (e) => {
-      if (!tocWrap.contains(e.relatedTarget)) closeImmediately();
+      if (!tocWrap.contains(e.relatedTarget)) closeWithDelay();
     });
 
     tocTrigger.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      clearTimeout(openTimer);
+      clearTOCTimers();
       setTOCOpen(!tocWrap.classList.contains("is-open"));
     });
 
     tocTrigger.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        clearTimeout(openTimer);
+        clearTOCTimers();
         setTOCOpen(!tocWrap.classList.contains("is-open"));
       }
     });
@@ -1813,6 +1993,7 @@ function initReadingProgress() {
   if (!progressBar) return;
 
   const updateProgress = () => {
+    const scrollY = Math.max(0, window.scrollY || window.pageYOffset || 0);
     const relatedSection = document.getElementById("related-reading");
     let totalHeight;
 
@@ -1826,10 +2007,13 @@ function initReadingProgress() {
       totalHeight = document.documentElement.scrollHeight - window.innerHeight;
     }
 
-    if (totalHeight > 0) {
-      const progress = Math.min((window.scrollY / totalHeight) * 100, 100);
-      progressBar.style.width = progress + "%";
+    if (totalHeight <= 0 || scrollY <= 2) {
+      progressBar.style.width = "0%";
+      return;
     }
+
+    const progress = Math.min(Math.max((scrollY / totalHeight) * 100, 0), 100);
+    progressBar.style.width = progress < 0.8 ? "0%" : `${progress}%`;
   };
 
   window.addEventListener("scroll", updateProgress, { passive: true });
@@ -2156,14 +2340,6 @@ async function checkAuth(retries = 0) {
     const userDisplay = document.getElementById("user-display-name");
 
     if (session && session.user) {
-      if (session.provider_token) {
-        const provider = session.user?.app_metadata?.provider;
-        const providers = session.user?.app_metadata?.providers || [];
-        if (provider === "google" || providers.includes("google")) {
-          sessionStorage.setItem("google_provider_token", session.provider_token);
-        }
-      }
-
       if (loginSection) loginSection.style.display = "none";
       if (formSection) formSection.style.display = "block";
       if (userDisplay) {
@@ -2177,7 +2353,6 @@ async function checkAuth(retries = 0) {
         userDisplay.textContent = `Posting as ${name}`;
       }
     } else {
-      sessionStorage.removeItem("google_provider_token");
       if (loginSection) loginSection.style.display = "block";
       if (formSection) formSection.style.display = "none";
     }
@@ -2286,7 +2461,6 @@ async function handleCommentSubmit(e) {
 }
 
 function setupCommentImageUploader() {
-  const MAX_COMMENT_IMAGE_BYTES = 10 * 1024 * 1024;
   const addBtn = document.getElementById("add-image-btn");
   const fileInput = document.getElementById("comment-image-upload");
   const previewContainer = document.getElementById("comment-image-preview");
@@ -2295,12 +2469,16 @@ function setupCommentImageUploader() {
   const popover = document.getElementById("attach-popover");
   const dropZone = document.getElementById("attach-drop-zone");
   const fromComputerBtn = document.getElementById("attach-from-computer");
-  const fromDriveBtn = document.getElementById("attach-from-drive");
+  const MAX_COMMENT_IMAGE_BYTES = 10 * 1024 * 1024;
 
   if (!addBtn || !fileInput) return;
 
   function handleFile(file) {
     if (!file || !file.type.startsWith("image/")) return;
+    if (file.size > MAX_COMMENT_IMAGE_BYTES) {
+      alert("Selected image is larger than 10 MB. Please choose a smaller file.");
+      return;
+    }
     const url = URL.createObjectURL(file);
     if (previewImg) previewImg.src = url;
     if (previewContainer) previewContainer.style.display = "inline-block";
@@ -2308,200 +2486,6 @@ function setupCommentImageUploader() {
     dt.items.add(file);
     fileInput.files = dt.files;
     if (popover) popover.classList.remove("active");
-  }
-
-  async function reconnectForDriveAccess() {
-    const viewerSlug = getCurrentViewerSlug();
-    if (popover) popover.classList.remove("active");
-    const { error } = await startGoogleAuthForViewer(viewerSlug, {
-      includeDriveScope: true,
-      reopenDriveUpload: true,
-    });
-    if (error) {
-      alert("Could not reconnect Google Drive access: " + error.message);
-    }
-  }
-
-  async function fetchDriveImages(accessToken) {
-    const q = encodeURIComponent("trashed=false and mimeType contains 'image/'");
-    const fields = encodeURIComponent(
-      "files(id,name,mimeType,size,modifiedTime),nextPageToken",
-    );
-    const url =
-      `https://www.googleapis.com/drive/v3/files?pageSize=20&orderBy=modifiedTime desc&q=${q}` +
-      `&fields=${fields}&includeItemsFromAllDrives=true&supportsAllDrives=true`;
-
-    const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    const payload = await res.json().catch(() => null);
-
-    if (!res.ok) {
-      const reason = payload?.error?.errors?.[0]?.reason || "";
-      const needsReconnect =
-        res.status === 401 ||
-        res.status === 403 ||
-        reason === "insufficientPermissions" ||
-        reason === "authError";
-
-      return {
-        ok: false,
-        needsReconnect,
-        message:
-          payload?.error?.message ||
-          "Could not read Google Drive files for this account.",
-      };
-    }
-
-    return {
-      ok: true,
-      files: Array.isArray(payload?.files) ? payload.files : [],
-    };
-  }
-
-  async function downloadDriveImage(accessToken, fileMeta) {
-    const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileMeta.id)}?alt=media&supportsAllDrives=true`;
-    const res = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!res.ok) {
-      if (res.status === 401 || res.status === 403) {
-        return {
-          ok: false,
-          needsReconnect: true,
-          message: "Google Drive permission expired. Please reconnect once.",
-        };
-      }
-      return {
-        ok: false,
-        message: "Could not download selected image from Google Drive.",
-      };
-    }
-
-    const blob = await res.blob();
-
-    if (!blob.type.startsWith("image/")) {
-      return {
-        ok: false,
-        message: "Selected file is not a supported image.",
-      };
-    }
-
-    if (blob.size > MAX_COMMENT_IMAGE_BYTES) {
-      return {
-        ok: false,
-        message: "Selected image is larger than 10 MB. Please choose a smaller file.",
-      };
-    }
-
-    const fileName =
-      fileMeta.name ||
-      `drive-image-${Date.now()}.${(blob.type.split("/")[1] || "jpg").replace(
-        /[^a-z0-9]/gi,
-        "",
-      )}`;
-    const file = new File([blob], fileName, {
-      type: blob.type || fileMeta.mimeType || "image/jpeg",
-    });
-
-    return { ok: true, file };
-  }
-
-  async function handleDriveUpload() {
-    if (!window.supabaseClient) {
-      alert("Authentication service is unavailable. Please refresh and try again.");
-      return;
-    }
-
-    const {
-      data: { session },
-    } = await window.supabaseClient.auth.getSession();
-
-    if (!session || !session.user) {
-      alert("Please sign in with Google first to attach files from Drive.");
-      return;
-    }
-
-    const provider = session.user?.app_metadata?.provider;
-    const providers = session.user?.app_metadata?.providers || [];
-    if (provider !== "google" && !providers.includes("google")) {
-      alert("Drive upload is only available for Google sign-in.");
-      return;
-    }
-
-    const accessToken =
-      session.provider_token || sessionStorage.getItem("google_provider_token");
-    if (!accessToken) {
-      alert(
-        "Google Drive access requires one-time permission. Reconnecting now...",
-      );
-      await reconnectForDriveAccess();
-      return;
-    }
-
-    const listResult = await fetchDriveImages(accessToken);
-    if (!listResult.ok) {
-      if (listResult.needsReconnect) {
-        sessionStorage.removeItem("google_provider_token");
-        alert("Please grant Google Drive permissions once to continue.");
-        await reconnectForDriveAccess();
-        return;
-      }
-      alert(listResult.message);
-      return;
-    }
-
-    const files = (listResult.files || []).filter((f) =>
-      String(f.mimeType || "").startsWith("image/"),
-    );
-
-    if (files.length === 0) {
-      alert("No images found in your Google Drive.");
-      return;
-    }
-
-    const maxChoices = Math.min(files.length, 15);
-    const optionsText = files
-      .slice(0, maxChoices)
-      .map((file, idx) => `${idx + 1}. ${file.name || `Image ${idx + 1}`}`)
-      .join("\n");
-
-    const selection = window.prompt(
-      `Select a Google Drive image by number:\n\n${optionsText}\n\nEnter 1-${maxChoices}`,
-    );
-
-    if (!selection) return;
-
-    const selectedIndex = Number.parseInt(selection, 10) - 1;
-    if (
-      !Number.isInteger(selectedIndex) ||
-      selectedIndex < 0 ||
-      selectedIndex >= maxChoices
-    ) {
-      alert("Invalid selection. Please try again.");
-      return;
-    }
-
-    const selectedFile = files[selectedIndex];
-    const downloadResult = await downloadDriveImage(accessToken, selectedFile);
-
-    if (!downloadResult.ok) {
-      if (downloadResult.needsReconnect) {
-        sessionStorage.removeItem("google_provider_token");
-        await reconnectForDriveAccess();
-        return;
-      }
-      alert(downloadResult.message);
-      return;
-    }
-
-    handleFile(downloadResult.file);
   }
 
   addBtn.addEventListener("click", (e) => {
@@ -2556,34 +2540,12 @@ function setupCommentImageUploader() {
     });
   }
 
-  if (fromDriveBtn) {
-    fromDriveBtn.addEventListener("click", async () => {
-      const originalContent = fromDriveBtn.innerHTML;
-      fromDriveBtn.disabled = true;
-      fromDriveBtn.textContent = "Loading Drive...";
-
-      try {
-        await handleDriveUpload();
-      } finally {
-        fromDriveBtn.disabled = false;
-        fromDriveBtn.innerHTML = originalContent;
-      }
-    });
-  }
-
   if (removeBtn) {
     removeBtn.addEventListener("click", () => {
       if (previewImg) previewImg.src = "";
       if (previewContainer) previewContainer.style.display = "none";
       fileInput.value = "";
     });
-  }
-
-  if (fromDriveBtn && sessionStorage.getItem("pending_drive_upload") === "1") {
-    sessionStorage.removeItem("pending_drive_upload");
-    setTimeout(() => {
-      fromDriveBtn.click();
-    }, 350);
   }
 }
 
