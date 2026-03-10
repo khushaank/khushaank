@@ -11065,7 +11065,7 @@ body.viewer-page .article-content img {
 
 body.viewer-page .reading-progress-container {
   height: 4px;
-  background: rgba(15, 23, 42, 0.08);
+  background: transparent;
 }
 
 body.viewer-page .reading-progress-bar {
