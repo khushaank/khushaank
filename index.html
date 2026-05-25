@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Khushaank Gupta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --white: #ffffff;
+            --off-white: #f5f5f3;
+            --black: #111111;
+            --mid-gray: #888;
+            --light-gray: #e8e8e5;
+            --nav-text: #666;
+            --body-text: #2a2a2a;
+            --max-w: 1100px;
+            --side-pad: 120px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--white);
+            color: var(--body-text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 17px;
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── HEADER ── */
+        header {
+            padding: 56px var(--side-pad) 0;
+            text-align: center;
+        }
+
+        .logo-wrap img {
+            max-height: 90px;
+            max-width: 420px;
+            width: 100%;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .logo-fallback {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 2.8rem;
+            letter-spacing: -1px;
+            color: var(--black);
+            display: none;
+        }
+
+        /* ── NAV ── */
+        nav {
+            padding: 40px var(--side-pad) 0;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--nav-text);
+            font-weight: 500;
+            transition: color 0.2s;
+            padding-bottom: 2px;
+            border-bottom: 1px solid transparent;
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: var(--black);
+            border-bottom-color: var(--black);
+        }
+
+        /* ── DIVIDER ── */
+        .nav-divider {
+            margin: 28px var(--side-pad) 0;
+            height: 1px;
+            background: var(--light-gray);
+        }
+
+        /* ── HERO ── */
+        .hero {
+            padding: 72px var(--side-pad) 80px;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 60px;
+            align-items: center;
+            max-width: var(--max-w);
+            margin: 0 auto;
+        }
+
+        .hero-photo {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            display: block;
+            border-radius: 2px;
+        }
+
+        .hero-photo-placeholder {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background: var(--off-white);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mid-gray);
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+
+        .hero-text h1 {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            line-height: 1.5;
+            margin-bottom: 28px;
+            color: var(--black);
+        }
+
+        .hero-text h1 em {
+            font-style: italic;
+        }
+
+        .hero-text h1 a {
+            color: var(--black);
+            text-decoration: underline;
+            text-decoration-thickness: 1.5px;
+            text-underline-offset: 3px;
+        }
+
+        .hero-text p {
+            font-size: 1rem;
+            color: #444;
+            line-height: 1.8;
+        }
+
+        /* ── NEWSLETTER ── */
+        .newsletter-section {
+            background: var(--off-white);
+            padding: 80px var(--side-pad);
+        }
+
+        .newsletter-inner {
+            max-width: 640px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .newsletter-inner h2 {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 1.65rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--black);
+        }
+
+        .newsletter-inner p {
+            color: #555;
+            font-size: 0.97rem;
+            margin-bottom: 32px;
+        }
+
+        .newsletter-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .newsletter-form input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 1.5px solid var(--light-gray);
+            background: var(--white);
+            border-radius: 2px;
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--black);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .newsletter-form input:focus {
+            border-color: var(--black);
+        }
+
+        .newsletter-form input::placeholder {
+            color: #aaa;
+        }
+
+        .newsletter-form button {
+            width: 100%;
+            padding: 16px;
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            border-radius: 2px;
+            font-size: 1rem;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .newsletter-form button:hover {
+            background: #333;
+        }
+
+        /* ── PRESS LOGOS ── */
+        .press-section {
+            padding: 72px var(--side-pad);
+            max-width: var(--max-w);
+            margin: 0 auto;
+        }
+
+        .press-divider {
+            height: 1px;
+            background: var(--light-gray);
+            margin-bottom: 56px;
+        }
+
+        .press-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px 60px;
+            align-items: center;
+            justify-items: center;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .press-logo {
+            font-family: 'Libre Baskerville', serif;
+            font-size: 1.1rem;
+            letter-spacing: 0.04em;
+            color: #bbb;
+            text-align: center;
+            font-weight: 700;
+            user-select: none;
+            transition: color 0.2s;
+        }
+
+        .press-logo:hover {
+            color: #888;
+        }
+
+        .press-logo.small {
+            font-size: 0.85rem;
+            letter-spacing: 0.18em;
+        }
+
+        .press-logo.serif-only {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            font-size: 1rem;
+            letter-spacing: 0.06em;
+        }
+
+        .press-end-divider {
+            height: 1px;
+            background: var(--light-gray);
+            margin-top: 56px;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            padding: 32px var(--side-pad);
+            text-align: center;
+        }
+
+        .footer-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #ccc;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: 0;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            :root {
+                --side-pad: 48px;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                padding: 48px var(--side-pad) 56px;
+            }
+
+            .hero-photo,
+            .hero-photo-placeholder {
+                max-width: 360px;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 560px) {
+            :root {
+                --side-pad: 24px;
+            }
+
+            nav {
+                gap: 20px;
+            }
+
+            .hero-text h1 {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo-wrap">
+            <img src="logo.png" alt="Khushaank Gupta"
+                onerror="this.style.display='none'; document.querySelector('.logo-fallback').style.display='block';" />
+            <span class="logo-fallback">Khushaank Gupta</span>
+        </div>
+    </header>
+
+    <!-- NAV -->
+    <nav>
+        <a href="#about" class="active">About</a>
+        <a href="#knotes">Knotes</a>
+        <a href="#projects">Projects</a>
+        <a href="#writing">Writing</a>
+        <a href="#speaking">Speaking</a>
+        <a href="#contact">Contact</a>
+    </nav>
+    <div class="nav-divider"></div>
+
+    <!-- HERO -->
+    <section class="hero" id="about">
+        <div>
+            <img src="KG.png" alt="Khushaank Gupta" class="hero-photo"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <div class="hero-photo-placeholder" style="display:none;">KG.png</div>
+        </div>
+        <div class="hero-text">
+            <h1>
+                Khushaank Gupta is a student, builder, and the founder of
+                <a href="https://knotes.in" target="_blank">knotes.in</a>.
+            </h1>
+            <p>
+                He is pursuing ACCA alongside a BCom from Delhi University, studying at the intersection of finance and
+                technology. He builds practical tools — from AI-powered websites for local businesses to personal
+                finance platforms — and believes in making things that actually work.
+            </p>
+            <br />
+            <p>
+                Currently building <strong>knotes.in</strong>, a free expression platform for sharing thoughts —
+                unfiltered, intentional, human.
+            </p>
+        </div>
+    </section>
+
+    <!-- NEWSLETTER -->
+    <div class="newsletter-section" id="contact">
+        <div class="newsletter-inner">
+            <h2>Stay in the loop</h2>
+            <p>Occasional notes on finance, technology, building things, and whatever else is on my mind.</p>
+            <div class="newsletter-form">
+                <input type="email" placeholder="Email" />
+                <button type="button" onclick="handleSignup(this)">Sign up</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRESS / AS SEEN IN -->
+    <section class="press-section">
+        <div class="press-divider"></div>
+        <div class="press-grid">
+            <span class="press-logo small">THE ECONOMIC TIMES</span>
+            <span class="press-logo small">MINT</span>
+            <span class="press-logo">Business Standard</span>
+            <span class="press-logo serif-only">CNBC TV18</span>
+            <span class="press-logo small">YOUR STORY</span>
+            <span class="press-logo">Inc42</span>
+            <span class="press-logo serif-only">The Ken</span>
+            <span class="press-logo small">TECH IN ASIA</span>
+        </div>
+        <div class="press-end-divider"></div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <span class="footer-dot">KG</span>
+    </footer>
+
+    <script>
+        // Smooth nav active state on scroll
+        const sections = document.querySelectorAll('section[id], div[id]');
+        const navLinks = document.querySelectorAll('nav a');
+
+        function onScroll() {
+            let current = '';
+            sections.forEach(s => {
+                if (window.scrollY >= s.offsetTop - 120) current = s.id;
+            });
+            navLinks.forEach(a => {
+                a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+            });
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+
+        function handleSignup(btn) {
+            const input = btn.previousElementSibling;
+            const email = input.value.trim();
+            if (!email || !email.includes('@')) {
+                input.style.borderColor = '#e55';
+                input.focus();
+                return;
+            }
+            btn.textContent = 'You\'re in ✓';
+            btn.style.background = '#333';
+            btn.disabled = true;
+            input.disabled = true;
+        }
+
+        // Fade-in on load
+        document.body.style.opacity = '0';
+        document.body.style.transition = 'opacity 0.4s ease';
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '1';
+        });
+    </script>
+
+</body>
+
+</html>
