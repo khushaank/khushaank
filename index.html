@@ -4,12 +4,14 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Khushaank Gupta</title>
+    <title>Khushaank Gupta — Student, Builder, Founder</title>
+    <meta name="description" content="Khushaank Gupta is a student, builder, and founder of Knotes — building at the intersection of finance and technology." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="icon" href="assets/images/favicon.png" type="image/x-icon">
     <link rel="shortcut icon" href="assets/images/favicon.png" type="image/x-icon">
     <link
-        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/home.css" />
 </head>
@@ -37,12 +39,12 @@
 
     <!-- HERO -->
     <section class="hero" id="about">
-        <div>
+        <div class="reveal">
             <img src="assets/images/KG.png" alt="Khushaank Gupta" class="hero-photo"
                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
             <div class="hero-photo-placeholder" style="display:none;">assets/images/KG.png</div>
         </div>
-        <div class="hero-text">
+        <div class="hero-text reveal reveal-delay-1">
             <h1>
                 Khushaank Gupta is a student, builder, and the founder of
                 <a href="https://knotes.dpdns.org" target="_blank">knotes</a>.
@@ -60,37 +62,76 @@
         </div>
     </section>
 
+    <!-- FEATURED VIDEO -->
+    <section class="video-section" id="video">
+        <div class="video-inner reveal">
+            <p class="section-label">Featured</p>
+            <h2>Watch the latest</h2>
+            <p>A quick intro to what I'm building and why it matters.</p>
+            <div class="video-placeholder" id="video-placeholder" role="button" tabindex="0"
+                aria-label="Play YouTube video">
+                <div class="video-placeholder-inner">
+                    <div class="play-button">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <polygon points="6,3 20,12 6,21" />
+                        </svg>
+                    </div>
+                    <span class="video-placeholder-label">YouTube Video</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- QUICK LINKS -->
+    <section class="quick-links">
+        <p class="section-label reveal">Explore</p>
+        <div class="link-grid reveal reveal-delay-1">
+            <a href="knotes.html" class="link-tile">
+                <h3>Knotes</h3>
+                <p>A free expression platform — write with intent, not performance.</p>
+                <svg class="tile-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M5 15L15 5M15 5H7M15 5V13" />
+                </svg>
+            </a>
+            <a href="projects.html" class="link-tile">
+                <h3>Projects</h3>
+                <p>Practical tools and experiments at the edge of finance and technology.</p>
+                <svg class="tile-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M5 15L15 5M15 5H7M15 5V13" />
+                </svg>
+            </a>
+            <a href="writing.html" class="link-tile">
+                <h3>Writing</h3>
+                <p>Notes on money, software, studying, and the discipline of finishing things.</p>
+                <svg class="tile-arrow" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M5 15L15 5M15 5H7M15 5V13" />
+                </svg>
+            </a>
+        </div>
+    </section>
+
     <!-- NEWSLETTER -->
     <div class="newsletter-section" id="contact">
-        <div class="newsletter-inner">
+        <div class="newsletter-inner reveal">
             <h2>Stay in the loop</h2>
             <p>Occasional notes on finance, technology, building things, and whatever else is on my mind.</p>
             <div class="newsletter-form">
-                <input type="email" placeholder="Email" />
-                <button type="button" onclick="handleSignup(this)">Sign up</button>
+                <input type="email" placeholder="Enter your email address..." id="newsletter-email" />
+                <button type="button" id="newsletter-btn" onclick="handleSignup(this)">Sign up</button>
             </div>
         </div>
     </div>
 
-    <!-- PRESS / AS SEEN IN -->
-    <section class="press-section">
-        <div class="press-divider"></div>
-        <div class="press-grid">
-            <img src="assets/images/image-asset1.webp" alt="The Economic Times" class="press-logo" />
-            <img src="assets/images/image-asset2.webp" alt="Mint" class="press-logo" />
-            <img src="assets/images/image-asset3.webp" alt="Business Standard" class="press-logo" />
-            <img src="assets/images/image-asset4.webp" alt="CNBC TV18" class="press-logo" />
-            <img src="assets/images/image-asset5.webp" alt="YourStory" class="press-logo" />
-            <img src="assets/images/image-asset6.webp" alt="Inc42" class="press-logo" />
-            <img src="assets/images/image-asset7.webp" alt="The Ken" class="press-logo" />
-            <img src="assets/images/image-asset8.webp" alt="Tech In Asia" class="press-logo" />
-        </div>
-        <div class="press-end-divider"></div>
-    </section>
-
-    <!-- FOOTER -->
     <footer>
-        <span class="footer-dot">KG</span>
+        <div class="footer-content reveal">
+            <span class="footer-dot">KG</span>
+            <div class="footer-links">
+                <a href="https://twitter.com/" target="_blank">Twitter</a>
+                <a href="https://linkedin.com/in/" target="_blank">LinkedIn</a>
+                <a href="https://github.com/" target="_blank">GitHub</a>
+            </div>
+            <p class="footer-text">&copy; 2026 Khushaank Gupta. All rights reserved.</p>
+        </div>
     </footer>
 
     <script src="assets/js/home.js"></script>
