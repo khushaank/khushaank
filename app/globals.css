@@ -40,9 +40,17 @@ main { min-height: 100vh; overflow: hidden; }
   background-image: url("/khushaank-pet.webp");
   background-repeat: no-repeat;
   background-size: 768px 1144px;
-  cursor: pointer;
+  cursor: grab;
   filter: drop-shadow(0 8px 8px rgba(23, 25, 20, 0.16));
+  touch-action: none;
+  user-select: none;
+  transform: translate3d(calc(100vw - 132px), calc(100vh - 140px), 0);
   will-change: transform, background-position;
+}
+
+.khushaank-pet[data-dragging="true"] {
+  cursor: grabbing;
+  filter: drop-shadow(0 12px 12px rgba(23, 25, 20, 0.22));
 }
 
 .khushaank-pet:focus-visible {
