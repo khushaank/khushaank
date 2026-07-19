@@ -27,6 +27,81 @@ a:focus-visible { outline: 3px solid var(--ink); outline-offset: 4px; }
 
 main { min-height: 100vh; overflow: hidden; }
 
+.khushaank-pet-stage {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: 96px;
+  height: 104px;
+  transform: translate3d(calc(100vw - 132px), calc(100vh - 140px), 0);
+  will-change: transform;
+}
+
+.khushaank-pet {
+  width: 96px;
+  height: 104px;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  background-image: url("/khushaank-pet.webp");
+  background-repeat: no-repeat;
+  background-size: 768px 1144px;
+  cursor: grab;
+  filter: drop-shadow(0 8px 8px rgba(23, 25, 20, 0.16));
+  touch-action: none;
+  user-select: none;
+  will-change: background-position;
+}
+
+.khushaank-pet-message {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  width: max-content;
+  max-width: min(240px, calc(100vw - 32px));
+  padding: 10px 14px;
+  border: 1px solid var(--ink);
+  border-radius: 14px 14px 4px 14px;
+  background: var(--paper);
+  box-shadow: 4px 4px 0 var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 15px;
+  line-height: 1.2;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: pet-message-in 220ms ease-out both;
+}
+
+.khushaank-pet-message::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: calc(50% - 5px);
+  width: 9px;
+  height: 9px;
+  border-right: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  background: var(--paper);
+  transform: translateY(-5px) rotate(45deg);
+}
+
+.khushaank-pet[data-dragging="true"] {
+  cursor: grabbing;
+  filter: drop-shadow(0 12px 12px rgba(23, 25, 20, 0.22));
+}
+
+.khushaank-pet:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 16px;
+}
+
+@keyframes pet-message-in {
+  from { opacity: 0; transform: translate(-50%, 6px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
 .site-header {
   min-height: 82px;
   padding: 0 clamp(24px, 4vw, 72px);
@@ -358,4 +433,5 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }
+  .khushaank-pet-stage, .khushaank-pet { will-change: auto; }
 }

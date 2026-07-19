@@ -1,6 +1,9 @@
+import KhushaankPet from "./KhushaankPet";
+
 export default function Home() {
   return (
     <main>
+      <KhushaankPet />
       <header className="site-header">
         <a className="wordmark" href="#top" aria-label="Khushaank Gupta, home">
           KG<span>.</span>
