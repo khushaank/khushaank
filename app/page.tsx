@@ -1,5 +1,7 @@
 import KhushaankPet from "./KhushaankPet";
 
+export const dynamic = "force-static";
+
 export default function Home() {
   return (
     <main>
