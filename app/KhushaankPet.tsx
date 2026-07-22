@@ -25,7 +25,9 @@ const reactions: Exclude<Pose, "idle" | "running-right" | "running-left" | "look
 
 const HEAD_MOVE_DELAY = 10_000;
 const ROAM_DELAY = 20_000;
-const ROAM_DURATION = 1_900;
+const MIN_ROAM_DURATION = 1_000;
+const MAX_ROAM_DURATION = 2_800;
+const ROAM_SPEED = 0.48;
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value));
@@ -38,6 +40,11 @@ export default function KhushaankPet() {
   const headTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const roamTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const roamFinishTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const dragFrame = useRef<number | undefined>(undefined);
+  const resizeFrame = useRef<number | undefined>(undefined);
+  const pendingDrag = useRef<
+    { position: Position; dx: number; dy: number } | undefined
+  >(undefined);
   const greetingTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const recordActivity = useRef<() => void>(() => undefined);
   const reactionIndex = useRef(0);
@@ -93,6 +100,38 @@ export default function KhushaankPet() {
     return bounded.x !== next.x || bounded.y !== next.y;
   }, []);
 
+  const applyPendingDrag = useCallback(() => {
+    dragFrame.current = undefined;
+    const update = pendingDrag.current;
+    pendingDrag.current = undefined;
+    if (!update) return;
+
+    const hitEdge = place(update.position);
+    if (hitEdge) show("failed");
+    else if (Math.abs(update.dx) > Math.abs(update.dy) && Math.abs(update.dx) > 1) {
+      show(update.dx > 0 ? "running-right" : "running-left");
+    } else {
+      show("idle");
+    }
+  }, [place, show]);
+
+  const scheduleDrag = useCallback(
+    (update: { position: Position; dx: number; dy: number }) => {
+      pendingDrag.current = update;
+      if (dragFrame.current !== undefined) return;
+      dragFrame.current = requestAnimationFrame(applyPendingDrag);
+    },
+    [applyPendingDrag],
+  );
+
+  const flushDrag = useCallback(() => {
+    if (dragFrame.current !== undefined) {
+      cancelAnimationFrame(dragFrame.current);
+      dragFrame.current = undefined;
+    }
+    applyPendingDrag();
+  }, [applyPendingDrag]);
+
   useEffect(() => {
     if (pose === "idle" || pose === "look" || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const count = poses[pose][1];
@@ -104,7 +143,7 @@ export default function KhushaankPet() {
     const node = stage.current;
     if (!node) return;
 
-    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
     const fallback = { x: innerWidth - node.offsetWidth - 24, y: innerHeight - node.offsetHeight - 24 };
     let initial = fallback;
     try {
@@ -126,10 +165,14 @@ export default function KhushaankPet() {
       show("idle");
     };
 
-    const scheduleIdleBehavior = () => {
+    const clearIdleTimers = () => {
       clearTimeout(headTimer.current);
       clearTimeout(roamTimer.current);
-      if (reducedMotion) return;
+    };
+
+    const scheduleIdleBehavior = () => {
+      clearIdleTimers();
+      if (motionPreference.matches || document.hidden) return;
 
       headTimer.current = setTimeout(() => {
         if (drag.current.active || node.dataset.roaming === "true") return;
@@ -146,9 +189,16 @@ export default function KhushaankPet() {
           x: runRight ? innerWidth - node.offsetWidth - 18 : 18,
           y: Math.random() > 0.5 ? 18 : innerHeight - node.offsetHeight - 18,
         };
+        const distance = Math.hypot(
+          destination.x - position.current.x,
+          destination.y - position.current.y,
+        );
+        const duration = Math.round(
+          clamp(distance / ROAM_SPEED, MIN_ROAM_DURATION, MAX_ROAM_DURATION),
+        );
 
         node.dataset.roaming = "true";
-        node.style.transition = `transform ${ROAM_DURATION}ms cubic-bezier(.45,.05,.55,.95)`;
+        node.style.transition = `transform ${duration}ms cubic-bezier(.45,.05,.55,.95)`;
         show(runRight ? "running-right" : "running-left");
         place(destination);
         roamFinishTimer.current = setTimeout(() => {
@@ -157,7 +207,7 @@ export default function KhushaankPet() {
           place(position.current, true);
           show("idle");
           scheduleIdleBehavior();
-        }, ROAM_DURATION);
+        }, duration + 40);
       }, ROAM_DELAY);
     };
 
@@ -167,17 +217,31 @@ export default function KhushaankPet() {
     };
 
     const resize = () => {
+      if (resizeFrame.current !== undefined) return;
+      resizeFrame.current = requestAnimationFrame(() => {
+        resizeFrame.current = undefined;
+        stopRoaming();
+        place(position.current, true);
+        scheduleIdleBehavior();
+      });
+    };
+    const visibilityChange = () => {
       stopRoaming();
-      place(position.current, true);
+      if (document.hidden) clearIdleTimers();
+      else scheduleIdleBehavior();
+    };
+    const motionPreferenceChange = () => {
+      stopRoaming();
       scheduleIdleBehavior();
     };
     const activity = () => recordActivity.current();
 
-    addEventListener("pointermove", activity, { passive: true });
     addEventListener("pointerdown", activity, { passive: true });
     addEventListener("keydown", activity);
     addEventListener("scroll", activity, { passive: true });
     addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", visibilityChange);
+    motionPreference.addEventListener("change", motionPreferenceChange);
     scheduleIdleBehavior();
 
     show("waving", 1_500);
@@ -187,20 +251,25 @@ export default function KhushaankPet() {
     ];
 
     return () => {
-      removeEventListener("pointermove", activity);
       removeEventListener("pointerdown", activity);
       removeEventListener("keydown", activity);
       removeEventListener("scroll", activity);
       removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", visibilityChange);
+      motionPreference.removeEventListener("change", motionPreferenceChange);
       clearTimeout(reactionTimer.current);
       clearTimeout(headTimer.current);
       clearTimeout(roamTimer.current);
       clearTimeout(roamFinishTimer.current);
+      if (dragFrame.current !== undefined) cancelAnimationFrame(dragFrame.current);
+      if (resizeFrame.current !== undefined) cancelAnimationFrame(resizeFrame.current);
       greetingTimers.current.forEach(clearTimeout);
     };
   }, [place, show]);
 
   const startDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0 || !event.isPrimary) return;
+    event.preventDefault();
     recordActivity.current();
     const rect = event.currentTarget.getBoundingClientRect();
     drag.current = {
@@ -224,24 +293,33 @@ export default function KhushaankPet() {
     drag.current.moved ||= Math.hypot(dx, dy) > 2;
     drag.current.lastX = event.clientX;
     drag.current.lastY = event.clientY;
-    const hitEdge = place({
-      x: event.clientX - drag.current.offsetX,
-      y: event.clientY - drag.current.offsetY,
+    scheduleDrag({
+      position: {
+        x: event.clientX - drag.current.offsetX,
+        y: event.clientY - drag.current.offsetY,
+      },
+      dx,
+      dy,
     });
-    if (hitEdge) show("failed");
-    else if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 1) {
-      show(dx > 0 ? "running-right" : "running-left");
-    } else {
-      show("idle");
-    }
   };
 
   const finishDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (!drag.current.active || event.pointerId !== drag.current.pointerId) return;
     drag.current.active = false;
+    flushDrag();
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+    setDragging(false);
+    place(position.current, true);
+    show("idle");
+    recordActivity.current();
+  };
+
+  const cancelDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (!drag.current.active || event.pointerId !== drag.current.pointerId) return;
+    drag.current.active = false;
+    flushDrag();
     setDragging(false);
     place(position.current, true);
     show("idle");
@@ -258,6 +336,7 @@ export default function KhushaankPet() {
     const delta = movement[event.key];
     if (!delta) return;
     event.preventDefault();
+    recordActivity.current();
     const hitEdge = place({ x: position.current.x + delta.x, y: position.current.y + delta.y }, true);
     show(
       hitEdge
@@ -292,7 +371,8 @@ export default function KhushaankPet() {
         onPointerDown={startDrag}
         onPointerMove={moveDrag}
         onPointerUp={finishDrag}
-        onPointerCancel={finishDrag}
+        onPointerCancel={cancelDrag}
+        onLostPointerCapture={cancelDrag}
         onKeyDown={moveWithKeyboard}
         onClick={() => {
           if (drag.current.moved) {
