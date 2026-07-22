@@ -52,6 +52,7 @@ main { min-height: 100vh; overflow: hidden; }
   height: 104px;
   transform: translate3d(calc(100vw - 132px), calc(100vh - 140px), 0);
   will-change: transform;
+  contain: layout style;
 }
 
 .khushaank-pet {
@@ -105,6 +106,10 @@ main { min-height: 100vh; overflow: hidden; }
 .khushaank-pet[data-dragging="true"] {
   cursor: grabbing;
   filter: drop-shadow(0 12px 12px rgba(23, 25, 20, 0.22));
+}
+
+.khushaank-pet-stage[data-roaming="true"] .khushaank-pet {
+  cursor: pointer;
 }
 
 .khushaank-pet:focus-visible {
