@@ -83,7 +83,13 @@ export default function KhushaankPet() {
     };
     position.current = bounded;
     node.style.transform = `translate3d(${bounded.x}px, ${bounded.y}px, 0)`;
-    if (save) localStorage.setItem("khushaank-pet-position", JSON.stringify(bounded));
+    if (save) {
+      try {
+        localStorage.setItem("khushaank-pet-position", JSON.stringify(bounded));
+      } catch {
+        // Storage can be unavailable in private or restricted browser contexts.
+      }
+    }
     return bounded.x !== next.x || bounded.y !== next.y;
   }, []);
 
@@ -233,7 +239,9 @@ export default function KhushaankPet() {
   const finishDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (!drag.current.active || event.pointerId !== drag.current.pointerId) return;
     drag.current.active = false;
-    event.currentTarget.releasePointerCapture(event.pointerId);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     setDragging(false);
     place(position.current, true);
     show("idle");
