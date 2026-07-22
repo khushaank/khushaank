@@ -10,7 +10,7 @@ let hostingConfig: { d1?: string; r2?: string } = {};
 if (fs.existsSync("./.openai/hosting.json")) {
   try {
     hostingConfig = JSON.parse(fs.readFileSync("./.openai/hosting.json", "utf-8"));
-  } catch (e) {}
+  } catch {}
 }
 
 const { d1, r2 } = hostingConfig;
@@ -51,9 +51,13 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
-    server: isCodexSeatbeltSandbox
-      ? { watch: { useFsEvents: false, usePolling: true } }
-      : undefined,
+    server: {
+      host: "0.0.0.0",
+      allowedHosts: ["terminal.local"],
+      ...(isCodexSeatbeltSandbox
+        ? { watch: { useFsEvents: false, usePolling: true } }
+        : {}),
+    },
     plugins: [
       vinext(),
       sites(),
