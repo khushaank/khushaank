@@ -22,8 +22,12 @@ test("ships the stable draggable Khushaank pet with intentional idle behavior", 
   assert.match(pet, /khushaank-pet-position/);
   assert.match(pet, /hasPointerCapture/);
   assert.match(pet, /Storage can be unavailable/);
-  assert.match(pet, /pointermove/);
-  assert.doesNotMatch(pet, /requestAnimationFrame/);
+  assert.match(pet, /requestAnimationFrame/);
+  assert.match(pet, /onLostPointerCapture/);
+  assert.match(pet, /visibilitychange/);
+  assert.match(pet, /MIN_ROAM_DURATION/);
+  assert.match(pet, /MAX_ROAM_DURATION/);
+  assert.doesNotMatch(pet, /addEventListener\("pointermove"/);
   assert.match(css, /background-image: url\("\/khushaank-pet\.webp"\)/);
   assert.match(css, /khushaank-pet-message/);
   assert.match(css, /touch-action: none/);
