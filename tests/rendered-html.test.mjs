@@ -20,10 +20,27 @@ test("ships the stable draggable Khushaank pet with intentional idle behavior", 
   assert.match(pet, /running-left/);
   assert.match(pet, /setPointerCapture/);
   assert.match(pet, /khushaank-pet-position/);
+  assert.match(pet, /hasPointerCapture/);
+  assert.match(pet, /Storage can be unavailable/);
   assert.match(pet, /pointermove/);
   assert.doesNotMatch(pet, /requestAnimationFrame/);
   assert.match(css, /background-image: url\("\/khushaank-pet\.webp"\)/);
   assert.match(css, /khushaank-pet-message/);
   assert.match(css, /touch-action: none/);
   await access(new URL("../public/khushaank-pet.webp", import.meta.url));
+});
+
+test("ships useful portfolio content and accessible navigation", async () => {
+  const [page, layout] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(page, /className="skip-link"/);
+  assert.match(page, /id="work"/);
+  assert.match(page, /B2B Industrial Solutions/);
+  assert.match(page, /Lead Quest/);
+  assert.match(page, /id="now"/);
+  assert.match(layout, /alternates: \{ canonical: "\/" \}/);
+  assert.match(layout, /robots: \{ index: true, follow: true \}/);
 });
