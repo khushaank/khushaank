@@ -3,6 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://khushaankgupta.qzz.io"),
+  alternates: { canonical: "/" },
   title: "Khushaank Gupta — AI, Business & Finance",
   description: "Turning businesses AI-first. I handle the how.",
   openGraph: {
@@ -18,6 +19,8 @@ export const metadata: Metadata = {
     description: "Turning businesses AI-first. I handle the how.",
     images: ["/og.png"],
   },
+  robots: { index: true, follow: true },
+  icons: { icon: "/favicon.svg" },
 };
 
 export default function RootLayout({
