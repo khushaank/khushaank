@@ -8,6 +8,16 @@ import { Icon } from "./icons";
 import { MediaGallery } from "./media-gallery";
 
 function stamp(date: string | null) { return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(date || 0)); }
+function FormattedText({ text }: { text: string }) {
+  const parts = text.split(/(\*\*[^*]+\*\*|__[^_]+__|_[^_]+_|\[[^\]]+\]\(https?:\/\/[^)]+\))/g);
+  return <>{parts.map((part, index) => {
+    if (part.startsWith("**")) return <strong key={index}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith("__")) return <u key={index}>{part.slice(2, -2)}</u>;
+    if (part.startsWith("_")) return <em key={index}>{part.slice(1, -1)}</em>;
+    const link = part.match(/^\[([^\]]+)\]\((https?:\/\/[^)]+)\)$/);
+    return link ? <a key={index} href={link[2]} className="underline underline-offset-2" target="_blank" rel="noreferrer">{link[1]}</a> : part;
+  })}</>;
+}
 
 function Menu({ id }: { id: string }) {
   const [open, setOpen] = useState(false);
@@ -18,12 +28,12 @@ function Menu({ id }: { id: string }) {
 function Avatar({ connected }: { connected?: boolean }) { return <div className="relative flex w-9 shrink-0 justify-center"><div className="z-[1] grid size-9 place-items-center rounded-full bg-zinc-900 text-xs font-semibold text-white">K</div>{connected && <span className="absolute top-9 bottom-[-18px] w-px bg-zinc-300" />}</div>; }
 
 function ThreadBody({ item, date, last }: { item: ThreadItem; date: string | null; last: boolean }) {
-  return <div className="flex gap-3"><Avatar connected={!last} /><div className="min-w-0 flex-1 pb-4"><div className="flex items-center gap-2 text-[13px]"><span className="font-semibold">Khushaank</span>{date && <time className="text-zinc-400">{stamp(date)}</time>}</div>{item.content.text && <p className="mt-0.5 whitespace-pre-wrap text-[15px] leading-[1.42]">{item.content.text}</p>}{item.content.code && <div className="mt-2.5"><CodeBlock {...item.content.code} /></div>}<MediaGallery media={item.media || []} /></div></div>;
+  return <div className="flex gap-3"><Avatar connected={!last} /><div className="min-w-0 flex-1 pb-4"><div className="flex items-center gap-2 text-[13px]"><span className="font-semibold">Khushaank</span>{date && <time className="text-zinc-400">{stamp(date)}</time>}</div>{item.content.text && <p className="mt-0.5 whitespace-pre-wrap text-[15px] leading-[1.42]"><FormattedText text={item.content.text} /></p>}{item.content.code && <div className="mt-2.5"><CodeBlock {...item.content.code} /></div>}<MediaGallery media={item.media || []} /></div></div>;
 }
 
 function LegacyPost({ post }: { post: Post }) {
   const text = post.content.text;
-  return <div className="flex gap-3"><Avatar /><div className="min-w-0 flex-1"><div className="flex items-center gap-2 text-[13px]"><span className="font-semibold">Khushaank</span><time className="text-zinc-400">{stamp(post.published_at || post.created_at)}</time><Menu id={post.id} /></div>{post.type === "article" ? <a href={`/blog/${post.slug}`} className="mt-2 flex gap-3 transition hover:opacity-70"><div className="min-w-0 flex-1"><h2 className="text-[15px] font-semibold leading-5 tracking-[-.02em]">{post.title}</h2><p className="mt-1.5 line-clamp-3 text-[13px] leading-5 text-zinc-500">{post.excerpt}</p><span className="mt-2.5 inline-flex text-xs font-medium">Read article →</span></div>{post.media?.[0] && <img src={post.media[0].url} alt={post.media[0].alt || "Article cover"} className="size-24 shrink-0 rounded-lg object-cover" />}</a> : <>{text && <p className="mt-0.5 whitespace-pre-wrap text-[15px] leading-[1.42]">{text}</p>}{post.content.code && <div className="mt-2.5"><CodeBlock {...post.content.code} /></div>}<MediaGallery media={post.media || []} /></>}</div></div>;
+  return <div className="flex gap-3"><Avatar /><div className="min-w-0 flex-1"><div className="flex items-center gap-2 text-[13px]"><span className="font-semibold">Khushaank</span><time className="text-zinc-400">{stamp(post.published_at || post.created_at)}</time><Menu id={post.id} /></div>{post.type === "article" ? <a href={`/blog/${post.slug}`} className="mt-2 flex gap-3 transition hover:opacity-70"><div className="min-w-0 flex-1"><h2 className="text-[15px] font-semibold leading-5 tracking-[-.02em]">{post.title}</h2><p className="mt-1.5 line-clamp-3 text-[13px] leading-5 text-zinc-500">{post.excerpt}</p><span className="mt-2.5 inline-flex text-xs font-medium">Read article →</span></div>{post.media?.[0] && <img src={post.media[0].url} alt={post.media[0].alt || "Article cover"} className="size-24 shrink-0 rounded-lg object-cover" />}</a> : <>{text && <p className="mt-0.5 whitespace-pre-wrap text-[15px] leading-[1.42]"><FormattedText text={text} /></p>}{post.content.code && <div className="mt-2.5"><CodeBlock {...post.content.code} /></div>}<MediaGallery media={post.media || []} /></>}</div></div>;
 }
 
 export function PostCard({ post }: { post: FeedItem }) {
