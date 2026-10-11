@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Khushaank Gupta is interested in business, finance, technology, AI, and global markets." />
+  <title>Khushaank Gupta  -  Business, Finance &amp; Global Markets</title>
+  <style>
+    :root {
+      --text: #171717;
+      --muted: #666666;
+      --line: #e8e8e8;
+      --linkedin: #0a66c2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 88% 10%, rgba(231, 220, 198, 0.52), transparent 40%), radial-gradient(ellipse at 8% 88%, rgba(226, 235, 229, 0.32), transparent 36%), #fbfaf7;
+      color: var(--text);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    main {
+      width: min(100% - 40px, 760px);
+      margin: 0 auto;
+      padding: 44px 0 20px;
+    }
+
+    .hero-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+    }
+
+    .hero-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: #777064;
+      font-size: 12px;
+      letter-spacing: 0.07em;
+      line-height: 1.5;
+      text-transform: uppercase;
+    }
+
+    .profile-photo {
+      display: block;
+      flex: 0 0 auto;
+      width: 112px;
+      height: 112px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      object-fit: cover;
+      background: #f5f5f5;
+      -webkit-user-drag: none;
+      user-select: none;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 7vw, 54px);
+      line-height: 1.08;
+      letter-spacing: -0.045em;
+      font-weight: 650;
+    }
+
+    .intro {
+      max-width: 620px;
+      margin: 14px 0 0;
+      color: #454545;
+      font-size: clamp(17px, 2.5vw, 20px);
+      line-height: 1.55;
+    }
+
+    .what-i-do {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .details {
+      margin: 0;
+      max-width: 620px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 22px;
+      margin-top: 16px;
+    }
+
+    .links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 28px;
+      color: var(--text);
+      font-size: 15px;
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+
+    .links a:hover { text-decoration: underline; text-underline-offset: 4px; }
+    .linkedin-logo { width: 21px; height: 21px; flex: 0 0 auto; color: var(--linkedin); }
+
+    footer {
+      margin-top: 34px;
+      color: #999999;
+      font-size: 12px;
+    }
+
+    @media (max-width: 520px) {
+      main { padding-top: 36px; padding-bottom: 24px; }
+      .hero-heading { gap: 14px; align-items: center; }
+      .profile-photo { width: 84px; height: 84px; }
+      h1 { font-size: clamp(29px, 7.4vw, 38px); }
+      .what-i-do { margin-top: 28px; padding-top: 18px; }
+      .links { align-items: flex-start; flex-direction: column; gap: 15px; }
+      footer { margin-top: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <!-- Keep hero.png in the same folder as this file. The photo sits beside your name. -->
+    <div class="hero-heading">
+      <div class="hero-copy">
+        <p class="eyebrow">Business, Finance &amp; Investment · Global Markets</p>
+        <h1>Khushaank Gupta</h1>
+      </div>
+      <img
+        class="profile-photo"
+        src="hero.png"
+        alt="Photo of Khushaank Gupta"
+        draggable="false"
+        onerror="this.style.display='none'"
+      />
+    </div>
+    <p class="intro">
+      I'm interested in business, finance, technology, and the people and systems behind how companies work.
+    </p>
+
+    <section class="what-i-do" aria-labelledby="what-heading">
+      <h2 id="what-heading">About me</h2>
+      <p class="details">
+        I spend a lot of time understanding business models, markets, and how technology - especially AI - is changing the way companies operate and make decisions. I'm 18, I enjoy learning how different businesses work, why certain models succeed, and how industries change over time. Right now, I'm focused on developing a stronger understanding of business, finance, technology, and global markets. Feel free to reach me.
+      </p>
+    </section>
+
+    <nav class="links" aria-label="Contact links">
+      <a href="mailto:khushaankgupta@gmail.com" target="_blank" rel="noopener noreferrer">khushaankgupta@gmail.com</a>
+
+      <a href="https://www.linkedin.com/in/khushaank/" target="_blank" rel="noopener noreferrer">
+        <svg class="linkedin-logo" viewBox="0 0 24 24" role="img" aria-label="LinkedIn logo" xmlns="http://www.w3.org/2000/svg">
+          <path fill="currentColor" d="M20.45 2H3.55C2.69 2 2 2.68 2 3.52v16.96c0 .84.69 1.52 1.55 1.52h16.9c.86 0 1.55-.68 1.55-1.52V3.52c0-.84-.69-1.52-1.55-1.52ZM7.93 18.35H4.96V9.02h2.97v9.33ZM6.45 7.75a1.72 1.72 0 1 1 .02-3.44 1.72 1.72 0 0 1-.02 3.44Zm11.9 10.6h-2.97v-4.54c0-1.08-.02-2.47-1.51-2.47-1.51 0-1.74 1.18-1.74 2.39v4.62H9.16V9.02h2.85v1.27h.04c.4-.73 1.37-1.51 2.81-1.51 3.01 0 3.57 1.98 3.57 4.55v5.02h-.08Z"/>
+        </svg>
+        Connect on LinkedIn
+      </a>
+    </nav>
+
+    <footer>© <span id="year">2026</span> Khushaank Gupta</footer>
+  </main>
+
+  <script>
+    // Keeps the copyright year current automatically.
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
